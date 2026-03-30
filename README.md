@@ -21,7 +21,7 @@ Key benefits:
 # Quick Start
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -103,8 +103,8 @@ GET /people/142/?expand=country.states
   - [Use Wildcards to Match Multiple Fields](#wildcards)
   - [Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>](#combining-sparse-fields-and-field-expansion-)
   - [Utility Functions <a id="utils"></a>](#utility-functions-)
-    - [rest_flex_fields.is_expanded(request, field: str)](#rest_flex_fieldsis_expandedrequest-field-str)
-    - [rest_flex_fields.is_included(request, field: str)](#rest_flex_fieldsis_includedrequest-field-str)
+    - [rest_flex_fields2.is_expanded(request, field: str)](#rest_flex_fields2is_expandedrequest-field-str)
+    - [rest_flex_fields2.is_included(request, field: str)](#rest_flex_fields2is_includedrequest-field-str)
   - [Query optimization (experimental)](#query-optimization-experimental)
 - [Changelog <a id="changelog"></a>](#changelog-)
 - [Testing](#testing)
@@ -115,13 +115,13 @@ GET /people/142/?expand=country.states
 First install:
 
 ```
-pip install drf-flex-fields
+pip install drf-flex-fields2
 ```
 
 Then have your serializers subclass `FlexFieldsModelSerializer`:
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -269,7 +269,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 If you request many objects, expanding fields could lead to many additional database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. Place those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
 
 ```python
-from rest_flex_fields import is_expanded
+from rest_flex_fields2 import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
     permit_list_expands = ['employer']
@@ -401,7 +401,7 @@ This import style will still work, but you can also now specify fully-qualified 
 The `omit` and `fields` options can be passed directly to serializers. Rather than defining a separate, slimmer version of a regular serializer, you can re-use the same serializer and declare which fields you want.
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -544,7 +544,7 @@ The `fields` parameter takes precedence over `expand`. That is, if a field is no
 
 ## Utility Functions <a id="utils"></a>
 
-### rest_flex_fields.is_expanded(request, field: str)
+### rest_flex_fields2.is_expanded(request, field: str)
 
 Checks whether a field has been expanded via the request's query parameters.
 
@@ -553,7 +553,7 @@ Checks whether a field has been expanded via the request's query parameters.
 - **request**: The request object
 - **field**: The name of the field to check
 
-### rest_flex_fields.is_included(request, field: str)
+### rest_flex_fields2.is_included(request, field: str)
 
 Checks whether a field has NOT been excluded via either the `omit` parameter or the `fields` parameter.
 
@@ -571,7 +571,7 @@ An experimental filter backend is available to help you automatically reduce the
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_flex_fields.filter_backends.FlexFieldsFilterBackend',
+        'rest_flex_fields2.filter_backends.FlexFieldsFilterBackend',
         # ...
     ),
     # ...
@@ -588,7 +588,7 @@ See [doc/CHANGELOG.md](doc/CHANGELOG.md)
 
 # Testing
 
-Tests are found in a simplified DRF project in the `/tests` folder. Install the project requirements and do `./manage.py test` to run them.
+Tests are found in a simplified DRF project in the `/src/tests` folder. Install the project requirements and do `./src/manage.py test` to run them.
 
 # License
 

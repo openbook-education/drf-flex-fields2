@@ -42,9 +42,7 @@ jobs:
               with:
                   filters: |
                       src:
-                          - "rest_flex_fields/**"
-                          - "tests/**"
-                          - "manage.py"
+                          - "src/**"
                           - "pyproject.toml"
                           - "poetry.lock"
                           - ".github/workflows/**"

@@ -199,7 +199,7 @@ class TestSerialize(TestCase):
             },
         )
 
-    @patch("rest_flex_fields.serializers.EXPAND_PARAM", "include")
+    @patch("rest_flex_fields2.serializers.EXPAND_PARAM", "include")
     def test_expand_with_custom_param_name(self):
         pet = Pet(
             name="Garfield",
@@ -220,7 +220,7 @@ class TestSerialize(TestCase):
         serializer = PetSerializer(pet, include=["owner"])
         self.assertEqual(serializer.data, expected_serializer_data)
 
-    @patch("rest_flex_fields.serializers.OMIT_PARAM", "exclude")
+    @patch("rest_flex_fields2.serializers.OMIT_PARAM", "exclude")
     def test_omit_with_custom_param_name(self):
         pet = Pet(
             name="Garfield",
@@ -239,7 +239,7 @@ class TestSerialize(TestCase):
         serializer = PetSerializer(pet, exclude=["species", "owner"])
         self.assertEqual(serializer.data, expected_serializer_data)
 
-    @patch("rest_flex_fields.serializers.FIELDS_PARAM", "only")
+    @patch("rest_flex_fields2.serializers.FIELDS_PARAM", "only")
     def test_fields_include_with_custom_param_name(self):
         pet = Pet(
             name="Garfield",

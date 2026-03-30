@@ -31,4 +31,4 @@ jobs:
               run: |
                   poetry run black --check .
                   poetry run flake8 .
-                  poetry run python manage.py test
+                  poetry run python src/manage.py test

@@ -9,7 +9,7 @@ readme = "README.md"
 homepage = "https://github.com/DennisSchulmeister/drf-flex-fields2"
 repository = "https://github.com/DennisSchulmeister/drf-flex-fields2"
 keywords = ["django", "rest", "api", "dynamic", "fields"]
-packages = [{ include = "rest_flex_fields2" }]
+packages = [{ include = "rest_flex_fields2", from = "src" }]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
