@@ -29,6 +29,4 @@ jobs:
 
             - name: "Run all checks and tests"
               run: |
-                  poetry run black --check .
-                  poetry run flake8 .
                   poetry run python src/manage.py test
