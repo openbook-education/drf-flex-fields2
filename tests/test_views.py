@@ -8,7 +8,7 @@ from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-from rest_flex_fields.filter_backends import FlexFieldsFilterBackend
+from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
 
 

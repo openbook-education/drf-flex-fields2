@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple
 
 from rest_framework import serializers
 
-from rest_flex_fields import (
+from rest_flex_fields2 import (
     EXPAND_PARAM,
     FIELDS_PARAM,
     OMIT_PARAM,

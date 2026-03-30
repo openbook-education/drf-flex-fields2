@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 
-from rest_flex_fields.serializers import FlexFieldsModelSerializer
+from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 from tests.testapp.models import Company, Person, Pet
 from tests.testapp.serializers import PetSerializer
 

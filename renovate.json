@@ -1,0 +1,104 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:best-practices",
+        ":dependencyDashboard",
+        ":semanticCommits",
+        ":semanticCommitTypeAll(chore)",
+        ":automergeRequireAllStatusChecks",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "timezone": "Europe/Berlin",
+    "dependencyDashboardTitle": "Dependency Dashboard",
+    "enabledManagers": [
+        "docker-compose",
+        "dockerfile",
+        "github-actions",
+        "npm",
+        "poetry"
+    ],
+    "labels": [
+        "dependencies",
+        "automated"
+    ],
+    "configMigration": true,
+    "prConcurrentLimit": 5,
+    "prHourlyLimit": 2,
+    "rebaseWhen": "behind-base-branch",
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automerge": true,
+        "platformAutomerge": true,
+        "addLabels": [
+            "weekly-update"
+        ]
+    },
+    "packageRules": [
+        {
+            "description": "Bump declared minimums for npm and Poetry dependencies instead of only refreshing lock files",
+            "matchManagers": [
+                "npm",
+                "poetry"
+            ],
+            "rangeStrategy": "bump"
+        },
+        {
+            "description": "Work around current npm peer dependency metadata issues in this repository",
+            "matchManagers": [
+                "npm"
+            ],
+            "postUpdateOptions": [
+                "npmInstallTwice"
+            ]
+        },
+        {
+            "description": "Automerge non-major dependency updates",
+            "matchUpdateTypes": [
+                "digest",
+                "minor",
+                "patch",
+                "pin",
+                "pinDigest"
+            ],
+            "automerge": true,
+            "platformAutomerge": true,
+            "addLabels": [
+                "weekly-update"
+            ]
+        },
+        {
+            "description": "Create major update PRs for manual review",
+            "matchUpdateTypes": [
+                "major"
+            ],
+            "automerge": false,
+            "platformAutomerge": false,
+            "addLabels": [
+                "major-update",
+                "manual-review"
+            ],
+            "prBodyNotes": [
+                "Review the upstream migration notes before merging this major update."
+            ]
+        },
+        {
+            "description": "Track GitHub Actions updates as part of dependency maintenance",
+            "matchManagers": [
+                "github-actions"
+            ],
+            "dependencyDashboardCategory": "GitHub Actions",
+            "commitMessageTopic": "GitHub Actions dependencies"
+        },
+        {
+            "description": "Track Docker example image tags in the example deployment setup",
+            "matchManagers": [
+                "docker-compose",
+                "dockerfile"
+            ],
+            "matchFileNames": [
+                "_docker/**"
+            ],
+            "dependencyDashboardCategory": "Docker Example Setup"
+        }
+    ]
+}

@@ -5,7 +5,7 @@ from django.test import override_settings
 from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 
 class MockRequest(object):

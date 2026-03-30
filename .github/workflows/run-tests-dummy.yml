@@ -1,0 +1,14 @@
+name: "Run Dummy Test Suite"
+
+on:
+    workflow_call:
+
+jobs:
+    run-dummy-test-suite:
+        name: "Run dummy test suite"
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: "Report skipped test suite"
+              run: |
+                echo "No relevant Python/package files changed. Skipping full test suite."

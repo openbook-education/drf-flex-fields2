@@ -1,6 +1,6 @@
 from rest_framework.viewsets import ModelViewSet
 
-from rest_flex_fields import FlexFieldsModelViewSet
+from rest_flex_fields2 import FlexFieldsModelViewSet
 from tests.testapp.models import Pet, TaggedItem
 from tests.testapp.serializers import PetSerializer, TaggedItemSerializer
 

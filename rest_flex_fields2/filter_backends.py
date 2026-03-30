@@ -9,7 +9,7 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from rest_flex_fields import (
+from rest_flex_fields2 import (
     FIELDS_PARAM,
     EXPAND_PARAM,
     OMIT_PARAM,
@@ -18,7 +18,7 @@ from rest_flex_fields import (
 
 WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES)
 
-from rest_flex_fields.serializers import (
+from rest_flex_fields2.serializers import (
     FlexFieldsModelSerializer,
     FlexFieldsSerializerMixin,
 )
