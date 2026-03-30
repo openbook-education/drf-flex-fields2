@@ -21,17 +21,11 @@ jobs:
               with:
                   ref: ${{ github.head_ref || github.ref }}
 
-            - name: "Set up Python"
-              uses: actions/setup-python@v5
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
               with:
+                  setup-python: "true"
                   python-version: ${{ matrix.python-version }}
-                  cache: "pip"
-
-            - name: "Install Poetry"
-              run: python -m pip install poetry
-
-            - name: "Install dependencies"
-              run: poetry install --with dev
 
             - name: "Run all checks and tests"
               run: |

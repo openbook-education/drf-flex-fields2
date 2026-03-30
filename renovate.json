@@ -11,10 +11,7 @@
     "timezone": "Europe/Berlin",
     "dependencyDashboardTitle": "Dependency Dashboard",
     "enabledManagers": [
-        "docker-compose",
-        "dockerfile",
         "github-actions",
-        "npm",
         "poetry"
     ],
     "labels": [
@@ -35,24 +32,12 @@
     },
     "packageRules": [
         {
-            "description": "Bump declared minimums for npm and Poetry dependencies instead of only refreshing lock files",
-            "matchManagers": [
-                "npm",
-                "poetry"
-            ],
+            "description": "Bump declared minimums for Poetry dependencies",
+            "matchManagers": ["poetry"],
             "rangeStrategy": "bump"
         },
         {
-            "description": "Work around current npm peer dependency metadata issues in this repository",
-            "matchManagers": [
-                "npm"
-            ],
-            "postUpdateOptions": [
-                "npmInstallTwice"
-            ]
-        },
-        {
-            "description": "Automerge non-major dependency updates",
+            "description": "Automerge minor dependency updates",
             "matchUpdateTypes": [
                 "digest",
                 "minor",
@@ -63,7 +48,7 @@
             "automerge": true,
             "platformAutomerge": true,
             "addLabels": [
-                "weekly-update"
+                "minor-update"
             ]
         },
         {
@@ -88,17 +73,6 @@
             ],
             "dependencyDashboardCategory": "GitHub Actions",
             "commitMessageTopic": "GitHub Actions dependencies"
-        },
-        {
-            "description": "Track Docker example image tags in the example deployment setup",
-            "matchManagers": [
-                "docker-compose",
-                "dockerfile"
-            ],
-            "matchFileNames": [
-                "_docker/**"
-            ],
-            "dependencyDashboardCategory": "Docker Example Setup"
         }
     ]
 }

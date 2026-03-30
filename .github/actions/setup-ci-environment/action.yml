@@ -20,19 +20,6 @@ inputs:
         required: false
         default: "latest"
 
-    # ======= #
-    # Node.js #
-    # ======= #
-    setup-node:
-        description: "Whether to set up Node.js"
-        required: false
-        default: "true"
-
-    node-version:
-        description: "Node.js version to install"
-        required: false
-        default: "24"
-
 runs:
     using: "composite"
     steps:
@@ -55,19 +42,4 @@ runs:
         - name: "Install Python dependencies"
           if: ${{ inputs.setup-python == 'true' }}
           run: poetry install --no-interaction --no-root
-          shell: bash
-
-        # ======= #
-        # Node.js #
-        # ======= #
-        - name: "Set up Node.js"
-          if: ${{ inputs.setup-node == 'true' }}
-          uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6
-          with:
-              node-version: ${{ inputs.node-version }}
-              cache: "npm"
-
-        - name: "Install Node.js dependencies"
-          if: ${{ inputs.setup-node == 'true' }}
-          run: npm install --legacy-peer-deps
           shell: bash
