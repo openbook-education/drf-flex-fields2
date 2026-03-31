@@ -24,7 +24,7 @@ between 2018 and 2023. For more details on why this fork exists, see
 [History](#history) below. See the [Migration Guide](https://drf-flex-fields2.readthedocs.io/en/latest/getting-started/migration/)
 in the documentation for detailed instructions. The short version is to
 upgrade your Django and DRF dependencies, if not done already, and then to
-replace `drf-flex-fields` with `drf-flex-fields2` and fis the import paths.
+replace `drf-flex-fields` with `drf-flex-fields2` and fix the import paths.
 
 The `drf-flex-fields2` API is stable and compatible with the original `drf-flex-fields`
 package. There are currently no plans to break the existing API. However, if breaking
