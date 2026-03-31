@@ -1,7 +1,7 @@
-Changelog
+changelog
 =========
 
-drf-flex-fields2 Changelog
+drf-flex-fields2 changelog
 --------------------------
 
 2.0.0 (April 2026)

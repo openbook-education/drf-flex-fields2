@@ -6,6 +6,12 @@ keep CI, dependency management, and published documentation working. Some of
 that behavior depends on settings outside the repository, so the external setup
 is documented here as part of the repository's operational state.
 
+For day-to-day maintainer work, use the dedicated guides:
+
+- :doc:`/maintainers/maintainer-local-development`
+- :doc:`/maintainers/maintainer-development-process`
+- :doc:`/maintainers/maintainer-architecture`
+
 .. contents::
    :local:
    :depth: 1
@@ -121,7 +127,7 @@ documentation in sync:
 
 1. The version in ``pyproject.toml`` was updated, for example with
    ``poetry version patch`` or ``poetry version 2.1.0``.
-2. Release notes were added to ``docs/CHANGELOG.rst``.
+2. Release notes were added to ``docs/changelog.rst``.
 3. Tests and the documentation build were run locally.
 4. The release changes were committed and an annotated tag such as ``v2.1.0``
    was created.

@@ -73,5 +73,9 @@ Expanded response:
        }
    }
 
-From there, continue with :doc:`usage` for nested expansion, sparse fieldsets,
-list-view restrictions, and lazy serializer references.
+From there, continue with :doc:`/guide/usage` for nested expansion, sparse
+fieldsets, list-view restrictions, and lazy serializer references.
+
+If you are new to the request model, read
+:doc:`/getting-started/core-concepts` first and then return to
+:doc:`/guide/usage`.

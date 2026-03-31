@@ -8,6 +8,12 @@ Flexible dynamic fields and nested resources for Django REST Framework serialize
 
 The full documentation is published on Read the Docs: <https://drf-flex-fields2.readthedocs.io/>
 
+Recommended reading paths:
+
+- New users: Installation -> Quick Start -> Core Concepts -> Usage
+- API consumers and backend developers: Usage -> Serializer Options -> Advanced Topics
+- Maintainers: Maintainer Local Development -> Maintainer GitHub Development Process -> Maintainer Architecture and Design -> Repository and Tooling Setup
+
 ## Installation
 
 ```bash

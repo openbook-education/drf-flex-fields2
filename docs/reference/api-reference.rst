@@ -1,13 +1,13 @@
 API Reference
 =============
 
-The API documentation below is generated automatically from the source code
-docstrings.
+The pages below are generated from source docstrings and cover the public
+module surface, including serializers, views, filter backends, and utilities.
 
 .. toctree::
    :maxdepth: 2
 
-   api/rest_flex_fields2/index
+   ../api/rest_flex_fields2/index
 
 
 Configuration Constants

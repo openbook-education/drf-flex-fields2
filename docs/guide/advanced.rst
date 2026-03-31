@@ -54,11 +54,40 @@ Both settings raise ``serializers.ValidationError`` when violated. You can
 customize the exceptions by overriding ``recursive_expansion_not_permitted()``
 and ``expansion_depth_exceeded()``.
 
+Example:
+
+.. code-block:: python
+
+   class PersonSerializer(FlexFieldsModelSerializer):
+       maximum_expansion_depth = 2
+       recursive_expansion_permitted = False
+
+       class Meta:
+           model = Person
+           fields = ["id", "name", "manager"]
+           expandable_fields = {
+               "manager": "people.api.serializers.PersonSerializer",
+           }
+
+With this configuration, requests such as ``?expand=manager.manager.manager``
+raise a validation error.
+
 Serializer Introspection
 ------------------------
 
 Instances of ``FlexFieldsModelSerializer`` expose ``expanded_fields``, which
 records the fields expanded during serialization.
+
+.. code-block:: python
+
+   serializer = PersonSerializer(
+       instance=person,
+       context={"request": request},
+   )
+   payload = serializer.data
+   expanded = serializer.expanded_fields
+
+``expanded`` can be used in tests to assert behavior for a specific query.
 
 Wildcards
 ---------
@@ -108,10 +137,35 @@ Returns whether a field was requested via the active expansion parameter.
 Returns whether a field remains included after ``fields`` and ``omit`` are
 applied.
 
+Example view usage:
+
+.. code-block:: python
+
+   from rest_flex_fields2 import is_expanded
+
+
+   class PersonViewSet(FlexFieldsModelViewSet):
+       serializer_class = PersonSerializer
+
+       def get_queryset(self):
+           queryset = Person.objects.all()
+
+           if is_expanded(self.request, "country"):
+               queryset = queryset.select_related("country")
+
+           return queryset
+
 Query Optimization Backend
 --------------------------
 
-An experimental backend can reduce query count and payload size automatically.
+Two backends are available:
+
+- ``FlexFieldsFilterBackend`` applies queryset optimization.
+- ``FlexFieldsDocsFilterBackend`` exposes query parameters for schema generation
+  on endpoints where the optimization backend is not enabled.
+
+``FlexFieldsFilterBackend`` can reduce query count and payload size
+automatically.
 
 .. code-block:: python
 
@@ -123,6 +177,16 @@ An experimental backend can reduce query count and payload size automatically.
 
 It applies ``select_related()``, ``prefetch_related()``, and ``only()`` based
 on the requested fields and expansions.
+
+Schema-only usage:
+
+.. code-block:: python
+
+   REST_FRAMEWORK = {
+       "DEFAULT_FILTER_BACKENDS": (
+           "rest_flex_fields2.filter_backends.FlexFieldsDocsFilterBackend",
+       ),
+   }
 
 .. warning::
 

@@ -1,6 +1,9 @@
 Usage
 =====
 
+This page focuses on day-to-day endpoint behavior. For setting-level controls,
+see :doc:`/guide/advanced`.
+
 Dynamic Field Expansion
 -----------------------
 
@@ -125,7 +128,8 @@ Expansion on List Views
 -----------------------
 
 Subclass ``FlexFieldsModelViewSet`` when you want to limit which fields may be
-expanded on list endpoints.
+expanded on list endpoints. This is useful when list endpoints would otherwise
+cause expensive relation loading for large result sets.
 
 .. code-block:: python
 
@@ -143,6 +147,11 @@ expanded on list endpoints.
                queryset = queryset.select_related("employer")
 
            return queryset
+
+``permit_list_expands`` is applied only for the list action. The view passes
+the allowed values through ``context["permitted_expands"]`` so the serializer
+can reject disallowed list-time expansions while still allowing detail-time
+expansions.
 
 Expanding a To-Many Relationship
 --------------------------------
@@ -230,6 +239,44 @@ To avoid circular imports, reference a serializer lazily by dotted path:
 Fully qualified import paths are supported. Legacy
 ``<app>.serializers.SerializerName`` paths still work as well.
 
+Example:
+
+.. code-block:: python
+
+   expandable_fields = {
+       "owner": ("accounts.api.serializers.UserSerializer", {"many": False}),
+   }
+
+Use lazy references when two serializers would otherwise import each other.
+
+.. _using-the-serializer-mixin:
+
+Using FlexFieldsSerializerMixin with a Custom Base
+--------------------------------------------------
+
+If your project already has a custom serializer base class, use
+``FlexFieldsSerializerMixin`` directly.
+
+.. code-block:: python
+
+   from rest_framework import serializers
+
+   from rest_flex_fields2 import FlexFieldsSerializerMixin
+
+
+   class BaseAPISerializer(serializers.ModelSerializer):
+       class Meta:
+           abstract = True
+
+
+   class AccountSerializer(FlexFieldsSerializerMixin, BaseAPISerializer):
+       class Meta:
+           model = Account
+           fields = ["id", "name", "owner"]
+           expandable_fields = {
+               "owner": "accounts.api.serializers.UserSerializer",
+           }
+
 Serializer Reuse
 ----------------
 
@@ -253,3 +300,50 @@ instances, which helps avoid maintaining multiple slightly different serializers
        class Meta:
            model = Person
            fields = ["id", "name", "country"]
+
+Real-World Example: Catalog Endpoint
+------------------------------------
+
+An e-commerce catalog can keep list responses light while exposing category
+details on demand.
+
+.. code-block:: text
+
+   GET /products/?fields=id,name,price,category&expand=category.parent
+
+.. code-block:: json
+
+   {
+       "id": 1001,
+       "name": "Trail Backpack",
+       "price": "89.00",
+       "category": {
+           "id": 12,
+           "name": "Backpacks",
+           "parent": {
+               "id": 2,
+               "name": "Outdoor"
+           }
+       }
+   }
+
+Real-World Example: SaaS Memberships
+------------------------------------
+
+A multi-tenant API can return a compact member list and allow clients to expand
+the organization only when needed.
+
+.. code-block:: text
+
+   GET /members/?omit=permissions&expand=organization
+
+.. code-block:: json
+
+   {
+       "id": 87,
+       "email": "sam@example.com",
+       "organization": {
+           "id": 11,
+           "name": "Acme Corp"
+       }
+   }
