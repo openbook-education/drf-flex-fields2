@@ -167,9 +167,18 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             return None, f"No module found at path: {path} when trying to import {class_name}"
 
         try:
-            return getattr(module, class_name), None
+            resolved = getattr(module, class_name)
         except AttributeError:
             return None, f"No class {class_name} class found in module {path}"
+
+        # Validate that the resolved attribute is actually a serializer class
+        if not isinstance(resolved, type):
+            return None, f"Attribute {class_name} in module {path} is not a class"
+
+        if not issubclass(resolved, serializers.Serializer):
+            return None, f"Class {class_name} in module {path} is not a Serializer subclass"
+
+        return resolved, None
 
     def _get_fields_names_to_remove(
         self,

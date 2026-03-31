@@ -43,7 +43,17 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _get_expandable_fields(serializer_class: Any) -> list:
-        expandable_fields = list(getattr(serializer_class.Meta, "expandable_fields").items())
+        # Use the same fallback logic as _expandable_fields in serializers.py
+        # Check Meta.expandable_fields first, then serializer_class.expandable_fields
+        meta = getattr(serializer_class, "Meta", None)
+        if meta is not None and hasattr(meta, "expandable_fields"):
+            expandable_fields_dict = meta.expandable_fields
+        elif hasattr(serializer_class, "expandable_fields"):
+            expandable_fields_dict = serializer_class.expandable_fields
+        else:
+            return []
+
+        expandable_fields = list(expandable_fields_dict.items())
         expand_list = []
 
         while expandable_fields:
