@@ -1,3 +1,11 @@
+"""
+Public API for the ``rest_flex_fields2`` package.
+
+Exports configuration constants, the main serializer mixin and model
+serializer, the convenience view set, and the request-inspection helpers
+`is_expanded` and `is_included`.
+"""
+
 from .config import (
     EXPAND_PARAM,
     FIELDS_PARAM,

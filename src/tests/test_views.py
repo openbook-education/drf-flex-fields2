@@ -1,3 +1,5 @@
+"""Integration tests for view-layer behaviour including filter-backend query optimisation."""
+
 from http import HTTPStatus
 from typing import cast
 from unittest.mock import patch
@@ -19,7 +21,10 @@ from tests.testapp.views import PetViewSet
 
 
 class PetViewTests(APITestCase):
+    """API tests for ``PetViewSet`` covering expand, sparse-fieldset, and write operations."""
+
     def setUp(self):
+        """Create a ``Company``, ``Person``, and ``Pet`` for use in each test."""
         self.company = Company.objects.create(name="McDonalds")
 
         self.person = Person.objects.create(
@@ -31,11 +36,13 @@ class PetViewTests(APITestCase):
         )
 
     def tearDown(self):
+        """Delete all test objects after each test."""
         Company.objects.all().delete()
         Person.objects.all().delete()
         Pet.objects.all().delete()
 
     def test_retrieve_expanded(self):
+        """Retrieve endpoint returns expanded owner when ``?expand=owner`` is given."""
         url = reverse("pet-detail", args=[self.pet.pk])
         response = cast(Response, self.client.get(url + "?expand=owner", format="json"))
 
@@ -52,6 +59,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_retrieve_sparse(self):
+        """Retrieve endpoint returns only requested fields when ``?fields=`` is given."""
         url = reverse("pet-detail", args=[self.pet.pk])
         response = cast(
             Response,
@@ -61,6 +69,7 @@ class PetViewTests(APITestCase):
         self.assertEqual(response.data, {"name": "Garfield", "species": "cat"})
 
     def test_retrieve_sparse_and_deep_expanded(self):
+        """Sparse fieldset and deep expansion can be combined in one request."""
         url = reverse("pet-detail", args=[self.pet.pk])
         url = url + "?fields=owner&expand=owner.employer"
         response = cast(Response, self.client.get(url, format="json"))
@@ -77,6 +86,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_retrieve_all_fields_at_root_and_sparse_fields_at_next_level(self):
+        """Wildcard root fieldset combined with a nested sparse fieldset is handled correctly."""
         url = reverse("pet-detail", args=[self.pet.pk])
         url = url + "?fields=*,owner.name&expand=owner"
         response = cast(Response, self.client.get(url, format="json"))
@@ -96,6 +106,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_list_expanded(self):
+        """List endpoint returns expanded owner when ``?expand=owner`` is given."""
         url = reverse("pet-list")
         url = url + "?expand=owner"
         response = cast(Response, self.client.get(url, format="json"))
@@ -114,6 +125,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_create_and_return_expanded_field(self):
+        """Create endpoint returns the expanded relation in its response payload."""
         url = reverse("pet-list")
         url = url + "?expand=owner"
 
@@ -146,6 +158,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_expand_drf_serializer_field(self):
+        """A plain DRF ``SerializerMethodField`` can be declared as an expandable field."""
         url = reverse("pet-detail", args=[self.pet.pk])
         response = cast(Response, self.client.get(url + "?expand=diet", format="json"))
 
@@ -162,6 +175,7 @@ class PetViewTests(APITestCase):
         )
 
     def test_expand_drf_model_serializer(self):
+        """A plain ``ModelSerializer`` (non-flex) can be an expandable field target."""
         petco = PetStore.objects.create(name="PetCo")
         self.pet.sold_from = petco
         self.pet.save()
@@ -188,7 +202,10 @@ class PetViewTests(APITestCase):
 @override_settings(DEBUG=True)
 @patch("tests.testapp.views.PetViewSet.filter_backends", [FlexFieldsFilterBackend])
 class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
+    """Re-runs all ``PetViewTests`` with ``FlexFieldsFilterBackend`` active."""
+
     def test_query_optimization(self):
+        """Filter backend generates a single optimised SQL query for sparse + expand requests."""
         url = reverse("pet-list")
         url = url + "?expand=owner&fields=name,owner"
 
@@ -220,7 +237,10 @@ class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
 @override_settings(DEBUG=True)
 @patch("tests.testapp.views.TaggedItemViewSet.filter_backends", [FlexFieldsFilterBackend])
 class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
+    """Tests for ``FlexFieldsFilterBackend`` with ``GenericForeignKey`` relations."""
+
     def test_query_optimization_includes_generic_foreign_keys_in_prefetch_related(self):
+        """``GenericForeignKey`` fields are included in ``prefetch_related`` calls."""
         self.company = Company.objects.create(name="McDonalds")
 
         self.person = Person.objects.create(
@@ -312,10 +332,14 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
 
 
 class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
+    """Tests for the OpenAPI schema parameters emitted by ``FlexFieldsDocsFilterBackend``."""
+
     def setUp(self):
+        """Instantiate the backend under test."""
         self.backend = FlexFieldsDocsFilterBackend()
 
     def test_get_schema_operation_parameters_for_flex_fields_view(self):
+        """Schema parameters include ``fields``, ``omit``, and ``expand`` for flex-fields views."""
         view = PetViewSet()
 
         parameters = self.backend.get_schema_operation_parameters(view)
@@ -345,6 +369,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
             self.assertIn(wildcard_value, expand_enum)
 
     def test_get_schema_operation_parameters_for_non_flex_fields_view(self):
+        """An empty list is returned for views whose serializer is not a flex-fields serializer."""
         class NonFlexFieldsViewSet:
             @staticmethod
             def get_serializer_class():

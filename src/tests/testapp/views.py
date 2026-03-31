@@ -1,3 +1,5 @@
+"""View sets used by the test suite's ``testapp``."""
+
 from rest_framework.viewsets import ModelViewSet
 
 from rest_flex_fields2 import FlexFieldsModelViewSet
@@ -16,5 +18,7 @@ class PetViewSet(FlexFieldsModelViewSet):
 
 
 class TaggedItemViewSet(ModelViewSet):
+    """View set for ``TaggedItem`` without flex-fields support, used to test the filter backend."""
+
     serializer_class = TaggedItemSerializer
     queryset = TaggedItem.objects.all()

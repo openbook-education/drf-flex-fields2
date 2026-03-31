@@ -1,3 +1,5 @@
+"""Integration tests for ``FlexFieldsModelSerializer`` serialization behaviour."""
+
 from typing import cast
 from unittest.mock import patch
 
@@ -11,7 +13,10 @@ from tests.testapp.serializers import PetSerializer
 
 
 class MockRequest:
+    """Minimal request stub exposing ``query_params`` and ``method``."""
+
     def __init__(self, query_params=None, method="GET"):
+        """Initialize with an optional query params dict and HTTP method string."""
         if query_params is None:
             query_params = {}
         self.query_params = query_params
@@ -19,7 +24,10 @@ class MockRequest:
 
 
 class TestSerialize(TestCase):
+    """End-to-end serialization tests covering omit, fields, and expand features."""
+
     def test_basic_field_omit(self):
+        """Fields listed in ``omit`` are absent from serialized output."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -41,6 +49,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_field_omit(self):
+        """Dot-notation ``omit`` values remove fields at the correct nesting level."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -71,6 +80,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_basic_field_include(self):
+        """Sparse ``fields`` list restricts output to the specified fields only."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -87,6 +97,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_field_include(self):
+        """Dot-notation ``fields`` list restricts nested fields at the correct level."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -109,6 +120,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_basic_expand(self):
+        """``expand`` replaces a PK field with the full nested serializer output."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -140,6 +152,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_nested_expand(self):
+        """Dot-notation ``expand`` expands fields at multiple nesting levels."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -183,6 +196,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_expand_from_request(self):
+        """``expand`` values from the request query param are applied correctly."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -215,6 +229,7 @@ class TestSerialize(TestCase):
 
     @patch("rest_flex_fields2.serializers.EXPAND_PARAM", "include")
     def test_expand_with_custom_param_name(self):
+        """A custom ``EXPAND_PARAM`` name is used as the kwarg / query-param key."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -236,6 +251,7 @@ class TestSerialize(TestCase):
 
     @patch("rest_flex_fields2.serializers.OMIT_PARAM", "exclude")
     def test_omit_with_custom_param_name(self):
+        """A custom ``OMIT_PARAM`` name is used as the kwarg / query-param key."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -255,6 +271,7 @@ class TestSerialize(TestCase):
 
     @patch("rest_flex_fields2.serializers.FIELDS_PARAM", "only")
     def test_fields_include_with_custom_param_name(self):
+        """A custom ``FIELDS_PARAM`` name is used as the kwarg / query-param key."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",
@@ -268,6 +285,7 @@ class TestSerialize(TestCase):
         self.assertEqual(serializer.data, expected_serializer_data)
 
     def test_all_special_value_in_serialize(self):
+        """Sparse ``fields`` containing ``__all__`` works correctly with validation."""
         pet = Pet(
             name="Garfield",
             toys="paper ball, string",

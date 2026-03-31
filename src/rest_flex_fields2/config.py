@@ -1,3 +1,12 @@
+"""
+Runtime configuration for ``rest_flex_fields2``.
+
+Reads the optional ``REST_FLEX_FIELDS`` dict from Django settings and
+exposes validated constants used throughout the package.  Raises
+``AssertionError`` or ``ValueError`` on invalid configuration so
+errors surface at import time rather than at request time.
+"""
+
 from django.conf import settings
 
 FLEX_FIELDS_OPTIONS           = getattr(settings, "REST_FLEX_FIELDS", {})
