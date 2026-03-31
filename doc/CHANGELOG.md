@@ -10,7 +10,7 @@ drf-flex-fields2 Changelog
 - Added CI tooling for automated version upgrades and SBOM generation.
 - Migrated source code from Python 2 to Python 3 syntax.
 - Fixed usage of deprecated Django APIs.
-- Tried to fix many pylance type errors.
+- Tried to fix many PyLance type errors.
 
 
 1.0.2 (March 2023)
