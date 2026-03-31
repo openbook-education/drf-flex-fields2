@@ -39,6 +39,7 @@ Supported stack
    :caption: Getting Started
 
    getting-started/installation
+   getting-started/migration
    getting-started/quickstart
    getting-started/core-concepts
 
