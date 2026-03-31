@@ -8,8 +8,8 @@ from rest_framework import viewsets
 
 
 class FlexFieldsMixin:
-    permit_list_expands = []
-    action:            str | None = None
+    permit_list_expands: list[str] = []
+    action: str | None = None
 
     def get_serializer_context(self) -> dict[str, Any]:
         default_context = super().get_serializer_context()  # type: ignore[misc]
