@@ -2,6 +2,8 @@ Serializer Options
 ==================
 
 Flex-field options can be supplied in three places.
+For request semantics and precedence rules, see
+:doc:`/getting-started/core-concepts`.
 
 1. Query parameters
 -------------------
@@ -55,3 +57,5 @@ Supported options
 
 Query-parameter values accept comma-separated lists. Nested paths use dot
 notation.
+
+For concrete request and response examples, see :doc:`/guide/usage`.

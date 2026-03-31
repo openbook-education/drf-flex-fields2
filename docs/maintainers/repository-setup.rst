@@ -6,12 +6,6 @@ keep CI, dependency management, and published documentation working. Some of
 that behavior depends on settings outside the repository, so the external setup
 is documented here as part of the repository's operational state.
 
-For day-to-day maintainer work, use the dedicated guides:
-
-- :doc:`/maintainers/maintainer-local-development`
-- :doc:`/maintainers/maintainer-development-process`
-- :doc:`/maintainers/maintainer-architecture`
-
 .. contents::
    :local:
    :depth: 1

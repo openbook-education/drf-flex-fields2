@@ -2,7 +2,8 @@ Usage
 =====
 
 This page focuses on day-to-day endpoint behavior. For setting-level controls,
-see :doc:`/guide/advanced`.
+see :doc:`/guide/advanced`. For option syntax and constructor-time usage, see
+:doc:`/guide/serializer-options`.
 
 Dynamic Field Expansion
 -----------------------
@@ -10,7 +11,8 @@ Dynamic Field Expansion
 To define expandable fields, add an ``expandable_fields`` dictionary to the
 serializer's ``Meta`` class. Each key is the field name to expand dynamically.
 Each value is either a serializer class or a tuple of serializer class plus
-serializer keyword arguments.
+serializer keyword arguments. Related option combinations are documented in
+:doc:`/guide/serializer-options`.
 
 .. code-block:: python
 
@@ -62,8 +64,51 @@ You can treat a relation as deferred by omitting it from the default field list
 and defining it only in ``expandable_fields``. The field then appears only when
 explicitly expanded.
 
+.. code-block:: python
+
+   class TeamSerializer(FlexFieldsModelSerializer):
+       class Meta:
+           model = Team
+           fields = ["id", "name"]
+
+
+   class MemberSerializer(FlexFieldsModelSerializer):
+       class Meta:
+           model = Member
+           fields = ["id", "email"]
+           expandable_fields = {
+               "team": TeamSerializer,
+           }
+
+Default response for ``GET /members/87/``:
+
+.. code-block:: json
+
+   {
+       "id": 87,
+       "email": "sam@example.com"
+   }
+
+Expanded response for ``GET /members/87/?expand=team``:
+
+.. code-block:: json
+
+   {
+       "id": 87,
+       "email": "sam@example.com",
+       "team": {
+           "id": 11,
+           "name": "API Platform"
+       }
+   }
+
 Deep Nested Expansion
 ---------------------
+
+This example demonstrates a two-level expansion: first ``country`` on
+``PersonSerializer``, then ``states`` on ``CountrySerializer``. The resulting
+request ``expand=country.states`` returns a person payload with nested country
+and state details.
 
 Nested expansions use dot notation:
 
@@ -80,6 +125,7 @@ Nested expansions use dot notation:
            model = Country
            fields = ["name", "population"]
            expandable_fields = {
+               # Expand states only when the client asks for them.
                "states": (StateSerializer, {"many": True}),
            }
 
@@ -120,9 +166,11 @@ Response:
        }
    }
 
-Be deliberate with nested expansions on large result sets. They can increase
-query count substantially unless you pair them with ``select_related()`` or
-``prefetch_related()``.
+.. warning::
+
+    Be deliberate with nested expansions on large result sets. They can increase
+    query count substantially unless you pair them with ``select_related()`` or
+    ``prefetch_related()``.
 
 Expansion on List Views
 -----------------------
@@ -169,62 +217,6 @@ multiple objects.
                "states": (StateSerializer, {"many": True}),
            }
 
-Sparse Fieldsets
-----------------
-
-Use either ``fields`` or ``omit`` to control the output shape.
-
-Default response:
-
-.. code-block:: json
-
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States",
-           "population": 330000000
-       },
-       "occupation": "Programmer",
-       "hobbies": ["rock climbing", "sipping coffee"]
-   }
-
-Request with ``?fields=id,name,country``:
-
-.. code-block:: json
-
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States",
-           "population": 330000000
-       }
-   }
-
-Request with ``?fields=id,name,country.name``:
-
-.. code-block:: json
-
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States"
-       }
-   }
-
-Request with ``?omit=country``:
-
-.. code-block:: json
-
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "occupation": "Programmer",
-       "hobbies": ["rock climbing", "sipping coffee"]
-   }
-
 Lazy Serializer References
 --------------------------
 
@@ -232,20 +224,26 @@ To avoid circular imports, reference a serializer lazily by dotted path:
 
 .. code-block:: python
 
-   expandable_fields = {
-       "record_set": ("<module_path_to_serializer_class>.RelatedSerializer", {"many": True}),
-   }
+   class OwnerSerializer(FlexFieldsModelSerializer):
+       class Meta:
+           model = Owner
+           fields = ["id", "name"]
+
+
+   class RecordSerializer(FlexFieldsModelSerializer):
+       class Meta:
+           model = Record
+           fields = ["id", "title", "owner"]
+           expandable_fields = {
+               "owner": "accounts.api.serializers.UserSerializer",
+               "record_set": (
+                   "records.api.serializers.RelatedSerializer",
+                   {"many": True},
+               ),
+           }
 
 Fully qualified import paths are supported. Legacy
 ``<app>.serializers.SerializerName`` paths still work as well.
-
-Example:
-
-.. code-block:: python
-
-   expandable_fields = {
-       "owner": ("accounts.api.serializers.UserSerializer", {"many": False}),
-   }
 
 Use lazy references when two serializers would otherwise import each other.
 
@@ -301,49 +299,3 @@ instances, which helps avoid maintaining multiple slightly different serializers
            model = Person
            fields = ["id", "name", "country"]
 
-Real-World Example: Catalog Endpoint
-------------------------------------
-
-An e-commerce catalog can keep list responses light while exposing category
-details on demand.
-
-.. code-block:: text
-
-   GET /products/?fields=id,name,price,category&expand=category.parent
-
-.. code-block:: json
-
-   {
-       "id": 1001,
-       "name": "Trail Backpack",
-       "price": "89.00",
-       "category": {
-           "id": 12,
-           "name": "Backpacks",
-           "parent": {
-               "id": 2,
-               "name": "Outdoor"
-           }
-       }
-   }
-
-Real-World Example: SaaS Memberships
-------------------------------------
-
-A multi-tenant API can return a compact member list and allow clients to expand
-the organization only when needed.
-
-.. code-block:: text
-
-   GET /members/?omit=permissions&expand=organization
-
-.. code-block:: json
-
-   {
-       "id": 87,
-       "email": "sam@example.com",
-       "organization": {
-           "id": 11,
-           "name": "Acme Corp"
-       }
-   }

@@ -4,7 +4,8 @@ Installation
 ``drf-flex-fields2`` is a thin extension for Django REST Framework serializers.
 It keeps your existing serializer design and adds three request-driven controls:
 ``expand`` for nested representations, ``fields`` for sparse inclusion, and
-``omit`` for explicit exclusions.
+``omit`` for explicit exclusions. For behavior examples, see
+:doc:`/guide/usage`.
 
 Install the package from PyPI:
 
@@ -41,7 +42,8 @@ practical integration pattern.
 Optional Django settings
 ------------------------
 
-Runtime behavior can be customized with the ``REST_FLEX_FIELDS`` setting:
+Runtime behavior can be customized with the ``REST_FLEX_FIELDS`` setting
+(see also :doc:`/reference/api-reference` for configuration constants):
 
 .. code-block:: python
 
@@ -57,6 +59,6 @@ Next steps
 ----------
 
 - Follow :doc:`/getting-started/quickstart` for a complete first
-    request/response flow.
+  request/response flow.
 - Read :doc:`/getting-started/core-concepts` for the request semantics behind ``expand``,
   ``fields``, and ``omit``.

@@ -74,8 +74,11 @@ Expanded response:
    }
 
 From there, continue with :doc:`/guide/usage` for nested expansion, sparse
-fieldsets, list-view restrictions, and lazy serializer references.
+fieldsets, list-view restrictions, and lazy serializer references. Then use
+:doc:`/guide/serializer-options` for constructor and nested serializer option
+patterns.
 
 If you are new to the request model, read
 :doc:`/getting-started/core-concepts` first and then return to
-:doc:`/guide/usage`.
+:doc:`/guide/usage`. For project-level settings and queryset optimization, see
+:doc:`/guide/advanced`.

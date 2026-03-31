@@ -44,7 +44,7 @@ Build documentation
 
 .. code-block:: bash
 
-   poetry run sphinx-build -W --keep-going docs/ /tmp/sphinx-test-build
+   poetry run sphinx-build -W --keep-going docs/ site/
 
 Common maintenance commands
 ---------------------------

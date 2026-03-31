@@ -5,7 +5,8 @@ Customization
 -------------
 
 Parameter names and wildcard values can be configured with the Django setting
-``REST_FLEX_FIELDS``.
+``REST_FLEX_FIELDS``. For the corresponding constants exposed by the package,
+see :doc:`/reference/api-reference`.
 
 .. list-table::
    :header-rows: 1
@@ -126,6 +127,9 @@ Response:
 Utility Functions
 -----------------
 
+For broader endpoint usage patterns that pair with these helpers, see
+:doc:`/guide/usage`.
+
 ``rest_flex_fields2.is_expanded(request, field)``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -158,33 +162,20 @@ Example view usage:
 Query Optimization Backend
 --------------------------
 
-Two backends are available:
-
-- ``FlexFieldsFilterBackend`` applies queryset optimization.
-- ``FlexFieldsDocsFilterBackend`` exposes query parameters for schema generation
-  on endpoints where the optimization backend is not enabled.
-
-``FlexFieldsFilterBackend`` can reduce query count and payload size
-automatically.
+``FlexFieldsFilterBackend`` is an optional integration that applies queryset
+optimization based on requested expansions and sparse fieldsets. You do not
+need this backend to use dynamic expansion (``expand``) or sparse fieldsets
+(``fields`` and ``omit``). Those core features work through the serializer
+layer. But you can add ``FlexFieldsFilterBackend`` when you want automatic
+queryset tuning from request parameters to reduce query count and payload
+size automatically. It applies ``select_related()``, ``prefetch_related()``,
+and ``only()`` based on the requested fields and expansions.
 
 .. code-block:: python
 
    REST_FRAMEWORK = {
        "DEFAULT_FILTER_BACKENDS": (
            "rest_flex_fields2.filter_backends.FlexFieldsFilterBackend",
-       ),
-   }
-
-It applies ``select_related()``, ``prefetch_related()``, and ``only()`` based
-on the requested fields and expansions.
-
-Schema-only usage:
-
-.. code-block:: python
-
-   REST_FRAMEWORK = {
-       "DEFAULT_FILTER_BACKENDS": (
-           "rest_flex_fields2.filter_backends.FlexFieldsDocsFilterBackend",
        ),
    }
 

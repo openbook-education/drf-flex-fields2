@@ -45,6 +45,63 @@ Examples:
 
 These values are configurable through ``REST_FLEX_FIELDS``.
 
+Example Requests
+----------------
+
+Use either ``fields`` or ``omit`` to control the output shape.
+
+Default response:
+
+.. code-block:: json
+
+   {
+       "id": 13322,
+       "name": "John Doe",
+       "country": {
+           "name": "United States",
+           "population": 330000000
+       },
+       "occupation": "Programmer",
+       "hobbies": ["rock climbing", "sipping coffee"]
+   }
+
+Request with ``?fields=id,name,country``:
+
+.. code-block:: json
+
+   {
+       "id": 13322,
+       "name": "John Doe",
+       "country": {
+           "name": "United States",
+           "population": 330000000
+       }
+   }
+
+Request with ``?fields=id,name,country.name``:
+
+.. code-block:: json
+
+   {
+       "id": 13322,
+       "name": "John Doe",
+       "country": {
+           "name": "United States"
+       }
+   }
+
+Request with ``?omit=country``:
+
+.. code-block:: json
+
+   {
+       "id": 13322,
+       "name": "John Doe",
+       "occupation": "Programmer",
+       "hobbies": ["rock climbing", "sipping coffee"]
+   }
+
+
 Where to apply controls
 -----------------------
 

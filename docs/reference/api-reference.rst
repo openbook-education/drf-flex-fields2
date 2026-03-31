@@ -4,6 +4,9 @@ API Reference
 The pages below are generated from source docstrings and cover the public
 module surface, including serializers, views, filter backends, and utilities.
 
+For task-oriented documentation, see :doc:`/guide/usage`,
+:doc:`/guide/serializer-options`, and :doc:`/guide/advanced`.
+
 .. toctree::
    :maxdepth: 2
 
