@@ -7,7 +7,10 @@ drf-flex-fields2 Changelog
 - Project forked from rsinger86/drf-flex-fields.
 - Python package renamed to `drf-flex-fields2`
 - Migrated tooling from setuptools to poetry.
-- Added CI tooling for automated version upgrades and SBOM generation
+- Added CI tooling for automated version upgrades and SBOM generation.
+- Migrated source code from Python 2 to Python 3 syntax.
+- Fixed usage of deprecated Django APIs.
+- Tried to fix many pylance type errors.
 
 
 1.0.2 (March 2023)

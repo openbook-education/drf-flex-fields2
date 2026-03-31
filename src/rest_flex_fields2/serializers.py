@@ -126,21 +126,21 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             serializer_class = self._get_serializer_class_from_lazy_string(
                 serializer_class
             )
-        else:
-            if issubclass(serializer_class, serializers.Serializer):
-                settings["context"] = self.context
 
-            if issubclass(serializer_class, FlexFieldsSerializerMixin):
-                settings["parent"] = self
+        if issubclass(serializer_class, serializers.Serializer):
+            settings["context"] = self.context
 
-                if name in nested_expand:
-                    settings[EXPAND_PARAM] = nested_expand[name]
+        if issubclass(serializer_class, FlexFieldsSerializerMixin):
+            settings["parent"] = self
 
-                if name in nested_fields:
-                    settings[FIELDS_PARAM] = nested_fields[name]
+            if name in nested_expand:
+                settings[EXPAND_PARAM] = nested_expand[name]
 
-                if name in nested_omit:
-                    settings[OMIT_PARAM] = nested_omit[name]
+            if name in nested_fields:
+                settings[FIELDS_PARAM] = nested_fields[name]
+
+            if name in nested_omit:
+                settings[OMIT_PARAM] = nested_omit[name]
 
         return serializer_class(**settings)
 

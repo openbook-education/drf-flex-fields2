@@ -33,3 +33,6 @@ first execute `poetry shell` to switch into the virtual environment.
 
 When modifying the repo setup or tooling, please update the documentation in the
 `doc` directory accordingly.
+
+Unit tests need to the run with `manage.py test` (Django test framework) from within
+the `src` directory.
