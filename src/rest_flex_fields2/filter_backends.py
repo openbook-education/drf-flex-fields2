@@ -1,13 +1,23 @@
 from functools import lru_cache
-from typing import Optional
+from importlib import import_module
+from typing import Any, Optional
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
-from rest_framework.compat import coreapi, coreschema
 from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
+
+try:
+    coreapi = import_module("coreapi")
+except ImportError:
+    coreapi = None
+
+try:
+    coreschema = import_module("coreschema")
+except ImportError:
+    coreschema = None
 
 from .config import (
     EXPAND_PARAM,
@@ -41,17 +51,18 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return None
 
     @staticmethod
-    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> list:
-        expandable_fields = list(getattr(serializer_class.Meta, 'expandable_fields').items())
+    def _get_expandable_fields(serializer_class: Any) -> list:
+        expandable_fields = list(getattr(serializer_class.Meta, "expandable_fields").items())
         expand_list = []
         while expandable_fields:
             key, cls = expandable_fields.pop()
-            cls = cls[0] if hasattr(cls, '__iter__') else cls
+            cls = cls[0] if hasattr(cls, "__iter__") else cls
 
             expand_list.append(key)
 
-            if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin) and hasattr(cls.Meta, "expandable_fields"):
-                next_layer = getattr(cls.Meta, 'expandable_fields')
+            meta = getattr(cls, "Meta", None)
+            if meta and issubclass(cls, FlexFieldsSerializerMixin) and hasattr(meta, "expandable_fields"):
+                next_layer = getattr(meta, "expandable_fields")
                 expandable_fields.extend([(f"{key}.{k}", cls) for k, cls in list(next_layer.items())])
 
         return expand_list

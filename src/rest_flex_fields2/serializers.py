@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Type
 
 from rest_framework import serializers
 
@@ -15,7 +15,7 @@ from .config import (
 from .utils import split_levels
 
 
-class FlexFieldsSerializerMixin:
+class FlexFieldsSerializerMixin(serializers.Serializer):
     """
     A ModelSerializer that takes additional arguments for
     "fields", "omit" and "expand" in order to
@@ -54,12 +54,9 @@ class FlexFieldsSerializerMixin:
             "omit": (self._get_query_param_value(OMIT_PARAM) if not omit else []),
         }
         self._flex_options_all = {
-            "expand": self._flex_options_base["expand"]
-            + self._flex_options_rep_only["expand"],
-            "fields": self._flex_options_base["fields"]
-            + self._flex_options_rep_only["fields"],
-            "omit": self._flex_options_base["omit"]
-            + self._flex_options_rep_only["omit"],
+            "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
+            "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
+            "omit":   self._flex_options_base["omit"]   + self._flex_options_rep_only["omit"],
         }
 
     def get_maximum_expansion_depth(self) -> Optional[int]:
@@ -81,6 +78,7 @@ class FlexFieldsSerializerMixin:
         if not self._flex_fields_rep_applied:
             self.apply_flex_fields(self.fields, self._flex_options_rep_only)
             self._flex_fields_rep_applied = True
+
         return super().to_representation(instance)
 
     def get_fields(self):
@@ -94,12 +92,12 @@ class FlexFieldsSerializerMixin:
         omit_fields, next_omit_fields = split_levels(flex_options["omit"])
 
         for field_name in self._get_fields_names_to_remove(
-            fields, omit_fields, sparse_fields, next_omit_fields
+            fields, omit_fields, sparse_fields, list(next_omit_fields.keys())
         ):
             fields.pop(field_name)
 
         for name in self._get_expanded_field_names(
-            expand_fields, omit_fields, sparse_fields, next_omit_fields
+            expand_fields, omit_fields, sparse_fields, list(next_omit_fields.keys())
         ):
             self.expanded_fields.append(name)
 
@@ -128,25 +126,25 @@ class FlexFieldsSerializerMixin:
             serializer_class = self._get_serializer_class_from_lazy_string(
                 serializer_class
             )
+        else:
+            if issubclass(serializer_class, serializers.Serializer):
+                settings["context"] = self.context
 
-        if issubclass(serializer_class, serializers.Serializer):
-            settings["context"] = self.context
+            if issubclass(serializer_class, FlexFieldsSerializerMixin):
+                settings["parent"] = self
 
-        if issubclass(serializer_class, FlexFieldsSerializerMixin):
-            settings["parent"] = self
+                if name in nested_expand:
+                    settings[EXPAND_PARAM] = nested_expand[name]
 
-            if name in nested_expand:
-                settings[EXPAND_PARAM] = nested_expand[name]
+                if name in nested_fields:
+                    settings[FIELDS_PARAM] = nested_fields[name]
 
-            if name in nested_fields:
-                settings[FIELDS_PARAM] = nested_fields[name]
-
-            if name in nested_omit:
-                settings[OMIT_PARAM] = nested_omit[name]
+                if name in nested_omit:
+                    settings[OMIT_PARAM] = nested_omit[name]
 
         return serializer_class(**settings)
 
-    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
+    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[serializers.Serializer]:
         path_parts = full_lazy_path.split(".")
         class_name = path_parts.pop()
         path = ".".join(path_parts)
@@ -162,16 +160,11 @@ class FlexFieldsSerializerMixin:
 
         raise Exception(error)
 
-    def _import_serializer_class(
-        self, path: str, class_name: str
-    ) -> Tuple[Optional[str], Optional[str]]:
+    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[serializers.Serializer]], Optional[str]]:
         try:
             module = importlib.import_module(path)
         except ImportError:
-            return (
-                None,
-                f"No module found at path: {path} when trying to import {class_name}",
-            )
+            return None, f"No module found at path: {path} when trying to import {class_name}"
 
         try:
             return getattr(module, class_name), None
@@ -214,9 +207,11 @@ class FlexFieldsSerializerMixin:
     ) -> bool:
         """
         Next level omits take form of:
+
         {
             'this_level_field': [field_to_omit_at_next_level]
         }
+
         We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
         should not omit the entire house or all the rooms, just the kitchen.
         """
@@ -240,7 +235,7 @@ class FlexFieldsSerializerMixin:
             return []
 
         if self._contains_wildcard_value(expand_fields):
-            expand_fields = self._expandable_fields.keys()
+            expand_fields = list(self._expandable_fields.keys())
 
         accum = []
 
@@ -262,8 +257,10 @@ class FlexFieldsSerializerMixin:
         """It's more consistent with DRF to declare the expandable fields
         on the Meta class, however we need to support both places
         for legacy reasons."""
-        if hasattr(self, "Meta") and hasattr(self.Meta, "expandable_fields"):
-            return self.Meta.expandable_fields
+        meta = getattr(self, "Meta", None)
+
+        if meta is not None and hasattr(meta, "expandable_fields"):
+            return meta.expandable_fields
 
         return self.expandable_fields
 
