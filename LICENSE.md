@@ -1,7 +1,7 @@
 MIT License
 ===========
 
-Copyright © 2016 – 2023 Robert Singer
+Copyright © 2016 – 2023 Robert Singer <br>
 Copyright © 2026 Dennis Schulmeister-Zimolong
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
