@@ -29,7 +29,7 @@ runs:
           with:
               path: "."
               format: "cyclonedx-json"
-              output-file: "sbom/openbook.cyclonedx.json"
+              output-file: "sbom/drf-flex-fields2.cyclonedx.json"
               upload-artifact: ${{ inputs.upload-artifact }}
               upload-release-assets: false
 
@@ -37,7 +37,7 @@ runs:
           if: ${{ inputs.commit-changes == 'true' }}
           shell: bash
           run: |
-              if git diff --quiet -- sbom/openbook.cyclonedx.json; then
+              if git diff --quiet -- sbom/drf-flex-fields2.cyclonedx.json; then
                   echo "No SBOM changes detected."
                   exit 0
               fi
@@ -45,6 +45,6 @@ runs:
               git config user.name "github-actions[bot]"
               git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-              git add sbom/openbook.cyclonedx.json
+              git add sbom/drf-flex-fields2.cyclonedx.json
               git commit -m "${{ inputs.commit-message }}"
               git push

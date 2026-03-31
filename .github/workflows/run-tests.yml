@@ -5,7 +5,7 @@ on:
     pull_request: {}
 
 permissions:
-    contents: write
+    contents: read
 
 concurrency:
     # Cancel concurrent workflow runs for the same pull request, since we only need

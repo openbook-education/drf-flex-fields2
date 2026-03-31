@@ -97,14 +97,14 @@ Configuration for [Renovate](https://docs.renovatebot.com/), the automated depen
 bot. Key settings:
 
 - Extends `config:best-practices` as the base preset.
-- Manages `docker-compose`, `dockerfile`, `github-actions`, `npm`, and `poetry` dependencies.
+- Manages `poetry` and `github-actions` dependencies.
 - Limits concurrent PRs (`prConcurrentLimit: 5`, `prHourlyLimit: 2`) to avoid flooding the
   PR list.
 - **Automerges** minor, patch, pin, and digest updates (platform automerge, no human review
   needed) as long as all status checks pass.
 - **Requires manual review** for major updates (labelled `major-update`, `manual-review`).
 - Weekly lock-file maintenance PRs are also automerged.
-- npm range strategy is `bump` (declared minimums are updated, not just the lock file).
+- Poetry range strategy is `bump` (declared minimums are updated, not just the lock file).
 - GitHub Actions dependency digests are pinned (`helpers:pinGitHubActionDigests`).
 - Uses semantic commit messages (`chore:` prefix for all dependency PRs).
 

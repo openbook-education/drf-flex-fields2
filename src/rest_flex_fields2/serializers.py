@@ -4,15 +4,15 @@ from typing import List, Optional, Tuple
 
 from rest_framework import serializers
 
-from rest_flex_fields2 import (
+from .config import (
     EXPAND_PARAM,
     FIELDS_PARAM,
-    OMIT_PARAM,
-    WILDCARD_VALUES,
     MAXIMUM_EXPANSION_DEPTH,
+    OMIT_PARAM,
     RECURSIVE_EXPANSION_PERMITTED,
-    split_levels,
+    WILDCARD_VALUES,
 )
+from .utils import split_levels
 
 
 class FlexFieldsSerializerMixin(object):
