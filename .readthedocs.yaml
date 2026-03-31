@@ -10,11 +10,10 @@ build:
             - poetry config virtualenvs.create false
         post_install:
             - poetry install --no-interaction --with docs
+        build:
+            - poetry run zensical build
 
 python:
     install:
         - method: pip
           path: .
-
-mkdocs:
-    configuration: mkdocs.yml

@@ -79,11 +79,11 @@ Configuration for [Renovate](https://docs.renovatebot.com/). It manages Poetry a
 
 ### `mkdocs.yml`
 
-Primary documentation-site configuration. Defines navigation, Markdown extensions, the Material theme, and `mkdocstrings` integration for API reference pages.
+Primary documentation-site configuration consumed by Zensical for MkDocs compatibility. Defines navigation, Markdown extensions, theme settings, and `mkdocstrings` integration for API reference pages.
 
 ### `.readthedocs.yaml`
 
-Read the Docs build configuration. It installs Poetry, installs the project together with the docs dependency group, and builds the site with MkDocs.
+Read the Docs build configuration. It installs Poetry, installs the project together with the docs dependency group, and builds the site with Zensical.
 
 ### `doc/`
 
@@ -91,7 +91,7 @@ Source directory for the documentation site. It now contains the user guide, API
 
 ### `.github/workflows/build-docs.yml`
 
-Builds the MkDocs site in CI on documentation, packaging, and public API changes. This keeps local docs changes aligned with what Read the Docs will build.
+Builds the Zensical site in CI on documentation, packaging, and public API changes. This keeps local docs changes aligned with what Read the Docs will build.
 
 ### `.github/workflows/run-tests.yml`
 

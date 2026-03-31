@@ -1,5 +1,6 @@
 *.pyc
 build/
+site/
 local-development.txt
 local-dev.txt
 dist/

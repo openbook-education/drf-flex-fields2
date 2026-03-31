@@ -11,6 +11,8 @@ drf-flex-fields2 Changelog
 - Migrated source code from Python 2 to Python 3 syntax.
 - Fixed usage of deprecated Django APIs.
 - Improved type hints and static typing compatibility (e.g., for PyLance).
+- Added missing and reworked existing docstrings for PEP 257 conformance
+- Set up proper documentation readthedocs.org.
 
 
 1.0.2 (March 2023)

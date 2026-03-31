@@ -93,7 +93,7 @@ Expanded response for `GET /people/142/?expand=country.states`:
 This repository uses Poetry.
 
 - Run tests from the `src` directory with `manage.py test`.
-- Build docs locally with `poetry run mkdocs build --strict`.
+- Build docs locally with `poetry run zensical build`.
 
 ## License
 

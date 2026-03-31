@@ -30,7 +30,7 @@ permissions:
 
 jobs:
     build-docs:
-        name: "Build MkDocs site"
+        name: "Build Zensical site"
         runs-on: ubuntu-latest
 
         steps:
@@ -47,4 +47,4 @@ jobs:
               run: poetry install --no-interaction --with docs
 
             - name: "Build documentation"
-              run: poetry run mkdocs build --strict
+              run: poetry run zensical build

@@ -24,4 +24,4 @@
 
 ## Documentation versions
 
-The published documentation is intended to be hosted on Read the Docs with one version per Git tag. The repository contains the required `.readthedocs.yaml` and `mkdocs.yml` files; the remaining one-time project configuration is documented in [Repository Setup](REPOSITORY-SETUP.md).
+The published documentation is intended to be hosted on Read the Docs with one version per Git tag. The repository contains the required `.readthedocs.yaml` and `mkdocs.yml` files for Zensical builds; the remaining one-time project configuration is documented in [Repository Setup](REPOSITORY-SETUP.md).
