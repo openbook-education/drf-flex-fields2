@@ -112,15 +112,18 @@ Troubleshooting
 ^^^^^^^^^^^^^^^
 
 **Import errors after migration?**
-   - Ensure you've updated all imports from ``rest_flex_fields`` to ``rest_flex_fields2``
-   - Run ``grep -rP "rest_flex_fields(?!2)" .`` to find any remaining old imports
-   - Check virtualenv/venv activation: ``pip list | grep drf-flex-fields``
+
+- Ensure you've updated all imports from ``rest_flex_fields`` to ``rest_flex_fields2``
+- Run ``grep -rP "rest_flex_fields(?!2)" .`` to find any remaining old imports
+- Check virtualenv/venv activation: ``pip list | grep drf-flex-fields``
 
 **Version conflicts?**
-   - Verify Django is 6.0+: ``python -m django --version``
-   - Verify DRF is 3.17.0+: ``python -c "import rest_framework; print(rest_framework.__version__)"``
-   - Update if needed: ``pip install --upgrade django djangorestframework``
+
+- Verify Django is 6.0+: ``python -m django --version``
+- Verify DRF is 3.17.0+: ``python -c "import rest_framework; print(rest_framework.__version__)"``
+- Update if needed: ``pip install --upgrade django djangorestframework``
 
 **Other issues?**
-   - Check the `issue tracker <https://github.com/openbook-education/drf-flex-fields2/issues>`_
-   - The project is actively maintained and we're happy to help!
+
+- Check the `issue tracker <https://github.com/openbook-education/drf-flex-fields2/issues>`_
+- The project is actively maintained and we're happy to help!
