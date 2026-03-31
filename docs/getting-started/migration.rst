@@ -87,7 +87,7 @@ The ``drf-flex-fields2`` API is fully compatible with the original ``drf-flex-fi
 package. All serializers, mixins, filters, and configuration options work exactly
 the same way.
 
-**Current commit:** No breaking changes are planned in the foreseeable future.
+**Stability:** No breaking changes are planned in the foreseeable future.
 
 **Future guarantee:** If breaking changes ever become necessary, the
 ``drf-flex-fields2`` project will strictly follow `semantic versioning
