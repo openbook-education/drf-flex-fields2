@@ -21,7 +21,7 @@ contribute fixes, docs, tests, or ideas, welcome.
 
 This is a fork of `drf-flex-fields` developed and maintained by Robert Singer
 between 2018 and 2023. For more details why this fork exists, see
-[History](#history) below. See the [Migration Guide](/docs/getting-started/migration.rst)
+[History](#history) below. See the [Migration Guide](https://drf-flex-fields2.readthedocs.io/en/latest/getting-started/migration/)
 in the documentation for detailed instructions. Basically simply replace `drf-flex-fields`
 with `drf-flex-fields2` and adapt the import paths accordingly.
 
