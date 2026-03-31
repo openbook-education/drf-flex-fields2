@@ -1,0 +1,32 @@
+name: "Run Full Test Suite"
+
+on:
+    workflow_call:
+
+permissions:
+    contents: read
+
+jobs:
+    run-full-test-suite:
+        name: "Run full test suite (Python ${{ matrix.python-version }})"
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.12", "3.13"]
+
+        steps:
+            - name: "Checkout code"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  ref: ${{ github.head_ref || github.ref }}
+
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
+              with:
+                  setup-python: "true"
+                  python-version: ${{ matrix.python-version }}
+
+            - name: "Run all checks and tests"
+              run: |
+                  poetry run python src/manage.py test

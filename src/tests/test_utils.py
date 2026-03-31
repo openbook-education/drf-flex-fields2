@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from rest_flex_fields import is_included, is_expanded, WILDCARD_ALL, WILDCARD_ASTERISK
+from rest_flex_fields2 import is_included, is_expanded, WILDCARD_ALL, WILDCARD_ASTERISK
 
 
 class MockRequest(object):

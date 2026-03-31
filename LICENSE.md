@@ -1,6 +1,8 @@
 MIT License
+===========
 
-Copyright (c) 2016 rsinger86
+Copyright © 2016 – 2023 Robert Singer
+Copyright © 2026 Dennis Schulmeister-Zimolong
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

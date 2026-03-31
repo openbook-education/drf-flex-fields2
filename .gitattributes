@@ -1,0 +1,2 @@
+# Generated files – excluded from GitHub diffs and language statistics
+sbom/drf-flex-fields2.cyclonedx.json linguist-generated=true -diff

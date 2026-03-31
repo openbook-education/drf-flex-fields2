@@ -5,7 +5,7 @@ from django.test import override_settings
 from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 
 class MockRequest(object):
@@ -185,7 +185,7 @@ class TestFlexFieldModelSerializer(TestCase):
     def test_make_expanded_field_serializer(self):
         pass
 
-    @patch("rest_flex_fields.serializers.RECURSIVE_EXPANSION_PERMITTED", False)
+    @patch("rest_flex_fields2.serializers.RECURSIVE_EXPANSION_PERMITTED", False)
     def test_recursive_expansion(self):
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
@@ -198,7 +198,7 @@ class TestFlexFieldModelSerializer(TestCase):
             )
 
     @patch(
-        "rest_flex_fields.FlexFieldsModelSerializer.recursive_expansion_permitted",
+        "rest_flex_fields2.FlexFieldsModelSerializer.recursive_expansion_permitted",
         new_callable=PropertyMock,
     )
     def test_recursive_expansion_serializer_level(
@@ -228,7 +228,7 @@ class TestFlexFieldModelSerializer(TestCase):
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
-    @patch("rest_flex_fields.serializers.MAXIMUM_EXPANSION_DEPTH", 2)
+    @patch("rest_flex_fields2.serializers.MAXIMUM_EXPANSION_DEPTH", 2)
     def test_expansion_depth_exception(self):
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
@@ -241,7 +241,7 @@ class TestFlexFieldModelSerializer(TestCase):
             )
 
     @patch(
-        "rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth",
+        "rest_flex_fields2.FlexFieldsModelSerializer.maximum_expansion_depth",
         new_callable=PropertyMock,
     )
     def test_expansion_depth_serializer_level(self, mock_maximum_expansion_depth):
@@ -257,7 +257,7 @@ class TestFlexFieldModelSerializer(TestCase):
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
     @patch(
-        "rest_flex_fields.FlexFieldsModelSerializer.maximum_expansion_depth",
+        "rest_flex_fields2.FlexFieldsModelSerializer.maximum_expansion_depth",
         new_callable=PropertyMock,
     )
     def test_expansion_depth_serializer_level_exception(

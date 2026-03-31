@@ -30,7 +30,3 @@ if type(MAXIMUM_EXPANSION_DEPTH) not in (int, type(None)):
     raise ValueError("'MAXIMUM_EXPANSION_DEPTH' should be a int or None")
 if type(RECURSIVE_EXPANSION_PERMITTED) is not bool:
     raise ValueError("'RECURSIVE_EXPANSION_PERMITTED' should be a bool")
-
-from .utils import *
-from .serializers import FlexFieldsModelSerializer
-from .views import FlexFieldsModelViewSet

@@ -9,19 +9,18 @@ from rest_framework.filters import BaseFilterBackend
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from rest_flex_fields import (
-    FIELDS_PARAM,
+from .config import (
     EXPAND_PARAM,
+    FIELDS_PARAM,
     OMIT_PARAM,
-    WILDCARD_VALUES
+    WILDCARD_VALUES,
 )
-
-WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES)
-
-from rest_flex_fields.serializers import (
+from .serializers import (
     FlexFieldsModelSerializer,
     FlexFieldsSerializerMixin,
 )
+
+WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES or [])
 
 
 class FlexFieldsDocsFilterBackend(BaseFilterBackend):
@@ -117,7 +116,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
         fields = self._get_fields(serializer_class)
         expandable_fields = self._get_expandable_fields(serializer_class)
-        expandable_fields.extend(WILDCARD_VALUES)
+        expandable_fields.extend(WILDCARD_VALUES or [])
 
         parameters = [
             {

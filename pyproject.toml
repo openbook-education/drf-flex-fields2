@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "drf-flex-fields2"
+version = "2.0.0"
+description = "Flexible, dynamic fields and nested resources for Django REST Framework serializers (forked from drf-flex-fields)."
+authors = ["Robert Singer", "Dennis Schulmeister"]
+maintainers = ["Dennis Schulmeister"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/DennisSchulmeister/drf-flex-fields2"
+repository = "https://github.com/DennisSchulmeister/drf-flex-fields2"
+keywords = ["django", "rest", "api", "dynamic", "fields"]
+packages = [{ include = "rest_flex_fields2", from = "src" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Django",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django REST framework",
+]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4.0"
+django = ">=6.0,<=7.0"
+djangorestframework = ">=3.17,<4.0"
+
+[build-system]
+requires = ["poetry-core>=1.9.0"]
+build-backend = "poetry.core.masonry.api"

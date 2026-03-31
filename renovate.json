@@ -1,0 +1,78 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:best-practices",
+        ":dependencyDashboard",
+        ":semanticCommits",
+        ":semanticCommitTypeAll(chore)",
+        ":automergeRequireAllStatusChecks",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "timezone": "Europe/Berlin",
+    "dependencyDashboardTitle": "Dependency Dashboard",
+    "enabledManagers": [
+        "github-actions",
+        "poetry"
+    ],
+    "labels": [
+        "dependencies",
+        "automated"
+    ],
+    "configMigration": true,
+    "prConcurrentLimit": 5,
+    "prHourlyLimit": 2,
+    "rebaseWhen": "behind-base-branch",
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automerge": true,
+        "platformAutomerge": true,
+        "addLabels": [
+            "weekly-update"
+        ]
+    },
+    "packageRules": [
+        {
+            "description": "Bump declared minimums for Poetry dependencies",
+            "matchManagers": ["poetry"],
+            "rangeStrategy": "bump"
+        },
+        {
+            "description": "Automerge minor dependency updates",
+            "matchUpdateTypes": [
+                "digest",
+                "minor",
+                "patch",
+                "pin",
+                "pinDigest"
+            ],
+            "automerge": true,
+            "platformAutomerge": true,
+            "addLabels": [
+                "minor-update"
+            ]
+        },
+        {
+            "description": "Create major update PRs for manual review",
+            "matchUpdateTypes": [
+                "major"
+            ],
+            "automerge": false,
+            "platformAutomerge": false,
+            "addLabels": [
+                "major-update",
+                "manual-review"
+            ],
+            "prBodyNotes": [
+                "Review the upstream migration notes before merging this major update."
+            ]
+        },
+        {
+            "description": "Track GitHub Actions updates as part of dependency maintenance",
+            "matchManagers": [
+                "github-actions"
+            ],
+            "dependencyDashboardCategory": "GitHub Actions",
+            "commitMessageTopic": "GitHub Actions dependencies"
+        }
+    ]
+}

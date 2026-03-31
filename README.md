@@ -1,7 +1,7 @@
 # Django REST - FlexFields
 
-[![Package version](https://badge.fury.io/py/drf-flex-fields.svg)](https://pypi.python.org/pypi/drf-flex-fields)
-[![Python versions](https://img.shields.io/pypi/status/drf-flex-fields.svg)](https://img.shields.io/pypi/status/django-lifecycle.svg/)
+[![Package version](https://badge.fury.io/py/drf-flex-fields2.svg)](https://pypi.python.org/pypi/drf-flex-fields2)
+[![Python versions](https://img.shields.io/pypi/status/drf-flex-fields2.svg)](https://img.shields.io/pypi/status/django-lifecycle.svg/)
 
 Flexible, dynamic fields and nested models for Django REST Framework serializers.
 
@@ -21,7 +21,7 @@ Key benefits:
 # Quick Start
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -103,8 +103,8 @@ GET /people/142/?expand=country.states
   - [Use Wildcards to Match Multiple Fields](#wildcards)
   - [Combining Sparse Fields and Field Expansion <a id="combining-sparse-and-expanded"></a>](#combining-sparse-fields-and-field-expansion-)
   - [Utility Functions <a id="utils"></a>](#utility-functions-)
-    - [rest_flex_fields.is_expanded(request, field: str)](#rest_flex_fieldsis_expandedrequest-field-str)
-    - [rest_flex_fields.is_included(request, field: str)](#rest_flex_fieldsis_includedrequest-field-str)
+    - [rest_flex_fields2.is_expanded(request, field: str)](#rest_flex_fields2is_expandedrequest-field-str)
+    - [rest_flex_fields2.is_included(request, field: str)](#rest_flex_fields2is_includedrequest-field-str)
   - [Query optimization (experimental)](#query-optimization-experimental)
 - [Changelog <a id="changelog"></a>](#changelog-)
 - [Testing](#testing)
@@ -115,13 +115,13 @@ GET /people/142/?expand=country.states
 First install:
 
 ```
-pip install drf-flex-fields
+pip install drf-flex-fields2
 ```
 
 Then have your serializers subclass `FlexFieldsModelSerializer`:
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class StateSerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -269,7 +269,7 @@ Please be kind to your database, as this could incur many additional queries. Th
 If you request many objects, expanding fields could lead to many additional database queries. Subclass `FlexFieldsModelViewSet` if you want to prevent expanding fields by default when calling a ViewSet's `list` method. Place those fields that you would like to expand in a `permit_list_expands` property on the ViewSet:
 
 ```python
-from rest_flex_fields import is_expanded
+from rest_flex_fields2 import is_expanded
 
 class PersonViewSet(FlexFieldsModelViewSet):
     permit_list_expands = ['employer']
@@ -401,7 +401,7 @@ This import style will still work, but you can also now specify fully-qualified 
 The `omit` and `fields` options can be passed directly to serializers. Rather than defining a separate, slimmer version of a regular serializer, you can re-use the same serializer and declare which fields you want.
 
 ```python
-from rest_flex_fields import FlexFieldsModelSerializer
+from rest_flex_fields2 import FlexFieldsModelSerializer
 
 class CountrySerializer(FlexFieldsModelSerializer):
     class Meta:
@@ -544,7 +544,7 @@ The `fields` parameter takes precedence over `expand`. That is, if a field is no
 
 ## Utility Functions <a id="utils"></a>
 
-### rest_flex_fields.is_expanded(request, field: str)
+### rest_flex_fields2.is_expanded(request, field: str)
 
 Checks whether a field has been expanded via the request's query parameters.
 
@@ -553,7 +553,7 @@ Checks whether a field has been expanded via the request's query parameters.
 - **request**: The request object
 - **field**: The name of the field to check
 
-### rest_flex_fields.is_included(request, field: str)
+### rest_flex_fields2.is_included(request, field: str)
 
 Checks whether a field has NOT been excluded via either the `omit` parameter or the `fields` parameter.
 
@@ -571,7 +571,7 @@ An experimental filter backend is available to help you automatically reduce the
 
 REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
-        'rest_flex_fields.filter_backends.FlexFieldsFilterBackend',
+        'rest_flex_fields2.filter_backends.FlexFieldsFilterBackend',
         # ...
     ),
     # ...
@@ -582,119 +582,13 @@ It will automatically call `select_related` and `prefetch_related` on the curren
 
 **WARNING:** The optimization currently works only for one nesting level.
 
-# Changelog <a id="changelog"></a>
+# Changelog
 
-## 1.0.2 (March 2023)
-
-- Adds control over whether recursive expansions are allowed and allows setting the max expansion depth. Thanks @andruten!
-
-## 1.0.1 (March 2023)
-
-- Various bug fixes. Thanks @michaelschem, @andruten, and @erielias!
-
-## 1.0.0 (August 2022)
-
-- Improvements to the filter backends for generic foreign key handling and docs generation. Thanks @KrYpTeD974 and @michaelschem!
-
-## 0.9.9 (July 2022)
-
-- Fixes bug in `FlexFieldsFilterBackend`. Thanks @michaelschem!
-- Adds `FlexFieldsDocsFilterBackend` for schema population. Thanks @Rjevski!
-
-## 0.9.8 (April 2022)
-
-- Set expandable fields as the default example for expand query parameters in `coreapi.Field`. Thanks @JasperSui!
-
-## 0.9.7 (January 2022)
-
-- Includes m2m in prefetch_related clause even if they're not expanded. Thanks @pablolmedorado and @ADR-007!
-
-## 0.9.6 (November 2021)
-
-- Make it possible to use wildcard values with sparse fields requests.
-
-## 0.9.5 (October 2021)
-
-- Adds OpenAPI support. Thanks @soroush-tabesh!
-- Updates tests for Django 3.2 and fixes deprecation warning. Thanks @giovannicimolin!
-
-## 0.9.3 (August 2021)
-
-- Fixes bug where custom parameter names were not passed when constructing nested serializers. Thanks @Kandeel4411!
-
-## 0.9.2 (June 2021)
-
-- Ensures `context` dict is passed down to expanded serializers. Thanks @nikeshyad!
-
-## 0.9.1 (June 2021)
-
-- No longer auto removes `source` argument if it's equal to the field name.
-
-## 0.9.0 (April 2021)
-
-- Allows fully qualified import strings for lazy serializer classes.
-
-## 0.8.9 (February 2021)
-
-- Adds OpenAPI support to experimental filter backend. Thanks @LukasBerka!
-
-## 0.8.8 (September 2020)
-
-- Django 3.1.1 fix. Thansks @NiyazNz!
-- Docs typo fix. Thanks @zakjholt!
-
-## 0.8.6 (September 2020)
-
-- Adds `is_included` utility function.
-
-## 0.8.5 (May 2020)
-
-- Adds options to customize parameter names and wildcard values. Closes #10.
-
-## 0.8.1 (May 2020)
-
-- Fixes #44, related to the experimental filter backend. Thanks @jsatt!
-
-## 0.8.0 (April 2020)
-
-- Adds support for `expand`, `omit` and `fields` query parameters for non-GET requests.
-  - The common use case is creating/updating a model instance and returning a serialized response with expanded fields
-  - Thanks @kotepillar for raising the issue (#25) and @Crocmagnon for the idea of delaying field modification to `to_representation()`.
-
-## 0.7.5 (February 2020)
-
-- Simplifies declaration of `expandable_fields`
-  - If using a tuple, the second element - to define the serializer settings - is now optional.
-  - Instead of a tuple, you can now just use the serializer class or a string to lazily reference that class.
-  - Updates documentation.
-
-## 0.7.0 (February 2020)
-
-- Adds support for different ways of passing arrays in query strings. Thanks @sentyaev!
-- Fixes attribute error when map is supplied to split levels utility function. Thanks @hemache!
-
-## 0.6.1 (September 2019)
-
-- Adds experimental support for automatically SQL query optimization via a `FlexFieldsFilterBackend`. Thanks ADR-007!
-- Adds CircleCI config file. Thanks mikeIFTS!
-- Moves declaration of `expandable_fields` to `Meta` class on serialzer for consistency with DRF (will continue to support declaration as class property)
-- Python 2 is no longer supported. If you need Python 2 support, you can continue to use older versions of this package.
-
-## 0.5.0 (April 2019)
-
-- Added support for `omit` keyword for field exclusion. Code clean up and improved test coverage.
-
-## 0.3.4 (May 2018)
-
-- Handle case where `request` is `None` when accessing request object from serializer. Thanks @jsatt!
-
-## 0.3.3 (April 2018)
-
-- Exposes `FlexFieldsSerializerMixin` in addition to `FlexFieldsModelSerializer`. Thanks @jsatt!
+See [doc/CHANGELOG.md](doc/CHANGELOG.md)
 
 # Testing
 
-Tests are found in a simplified DRF project in the `/tests` folder. Install the project requirements and do `./manage.py test` to run them.
+Tests are found in a simplified DRF project in the `/src/tests` folder. Install the project requirements and do `./src/manage.py test` to run them.
 
 # License
 

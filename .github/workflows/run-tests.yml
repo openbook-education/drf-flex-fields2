@@ -1,0 +1,112 @@
+name: "Run Tests"
+
+on:
+    workflow_dispatch: {}
+    pull_request: {}
+
+permissions:
+    contents: read
+
+concurrency:
+    # Cancel concurrent workflow runs for the same pull request, since we only need
+    # the most recent one to pass
+    group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # Decide whether to run the full test suite or the dummy test suite. The full test
+    # suite is run when Python/package or workflow files changed, or the workflow was
+    # manually started. Otherwise the dummy test suite will be run to satisfy branch
+    # protection rules without wasting compute time.
+    changes:
+        name: "Detect relevant changes"
+        runs-on: ubuntu-latest
+
+        permissions:
+            pull-requests: read
+
+        outputs:
+            run-tests: ${{ steps.manual.outputs.run-tests || steps.filter.outputs.src }}
+
+        steps:
+            - name: "Always run tests for manual workflow dispatch"
+              id: manual
+              if: github.event_name != 'pull_request'
+              run: |
+                  echo "run-tests=true" >> "$GITHUB_OUTPUT"
+
+            - name: "Check whether Python/package files changed"
+              id: filter
+              if: github.event_name == 'pull_request'
+              uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+              with:
+                  filters: |
+                      src:
+                          - "src/**"
+                          - "pyproject.toml"
+                          - "poetry.lock"
+                          - ".github/workflows/**"
+
+    # Branch into reusable sub-workflow for the full test suite. Moved into a separate workflow
+    # to only initialize the full CI environment when it is really needed.
+    run-full-tests:
+        name: "Run full test suite"
+        needs: changes
+        if: needs.changes.outputs.run-tests == 'true'
+        uses: ./.github/workflows/run-tests-full.yml
+
+    # Branch into a dummy test suite that simple reports no relevant changes.
+    run-dummy-tests:
+        name: "Run dummy test suite"
+        needs: changes
+        if: needs.changes.outputs.run-tests != 'true'
+        uses: ./.github/workflows/run-tests-dummy.yml
+
+    # Job name used in the branch protection rules of the repo. Collects the test suite results
+    # and sets the job status accordingly.
+    tests:
+        runs-on: ubuntu-latest
+        if: ${{ always() }}
+        needs:
+            - changes
+            - run-full-tests
+            - run-dummy-tests
+
+        steps:
+            - name: "Verify selected test path succeeded"
+              shell: bash
+              env:
+                  CHANGES_RESULT: ${{ needs.changes.result }}
+                  RUN_TESTS: ${{ needs.changes.outputs.run-tests }}
+                  FULL_RESULT: ${{ needs.run-full-tests.result }}
+                  DUMMY_RESULT: ${{ needs.run-dummy-tests.result }}
+              run: |
+                  if [[ "$CHANGES_RESULT" != "success" ]]; then
+                      echo "Change detection did not succeed."
+                      exit 1
+                  fi
+
+                  case "$RUN_TESTS" in
+                      true)
+                          if [[ "$FULL_RESULT" == "success" ]]; then
+                              exit 0
+                          fi
+
+                          echo "The full test suite path did not succeed."
+                          echo "Result: $FULL_RESULT"
+                          exit 1
+                          ;;
+                      false)
+                          if [[ "$DUMMY_RESULT" == "success" ]]; then
+                              exit 0
+                          fi
+
+                          echo "The dummy test path did not succeed."
+                          echo "Result: $DUMMY_RESULT"
+                          exit 1
+                          ;;
+                      *)
+                          echo "Unexpected change detection output: $RUN_TESTS"
+                          exit 1
+                          ;;
+                  esac
