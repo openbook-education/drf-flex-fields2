@@ -87,7 +87,7 @@ Release Checklist
    .. code-block:: bash
 
       pip install --upgrade drf-flex-fields2
-      python -c "import rest_flex_fields2; print(rest_flex_fields2.__version__)"
+      python -c "import importlib.metadata as im; print(im.version('drf-flex-fields2'))"
 
 Read the Docs
 -------------
