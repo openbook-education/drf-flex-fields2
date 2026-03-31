@@ -8,6 +8,18 @@ from django.test import SimpleTestCase, override_settings
 class ConfigModuleTests(SimpleTestCase):
     """Tests for runtime configuration parsing and validation branches."""
 
+    def setUp(self):
+        """Store the original config module state."""
+        import rest_flex_fields2.config as config_module
+
+        self._original_config = importlib.reload(config_module)
+
+    def tearDown(self):
+        """Restore the config module to default state after each test."""
+        import rest_flex_fields2.config as config_module
+
+        importlib.reload(config_module)
+
     @staticmethod
     def _reload_config_module():
         """Reload and return the config module so settings are re-evaluated."""
