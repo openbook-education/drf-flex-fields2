@@ -53,5 +53,6 @@ Merge and follow-up
 Release handoff
 ---------------
 
-Publishing and external setup details are documented in
-:doc:`/maintainers/repository-setup`.
+The step-by-step release checklist (version bump, tagging, PyPI publish) is in
+:doc:`/maintainers/versioning-and-releases`. Repository-level and external
+service configuration is documented in :doc:`/maintainers/repository-setup`.

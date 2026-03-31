@@ -9,7 +9,7 @@ maintaining the ecosystem around them. If you are new to flexible serializers,
 welcome. If you are evaluating this for production, welcome. If you want to
 contribute fixes, docs, tests, or ideas, welcome.
 
-1. [Relation to drf-flex-fields](#relation-to-drf-flex-fields)
+1. [Migration from drf-flex-fields](#migration-from-drf-flex-fields)
 1. [Documentation](#documentation)
 1. [Installation](#installation)
 1. [Quick Example](#quick-example)
@@ -17,11 +17,19 @@ contribute fixes, docs, tests, or ideas, welcome.
 1. [License](#license)
 1. [History](#history)
 
-## Relation to drf-flex-fields
+## Migration from drf-flex-fields
 
 This is a fork of `drf-flex-fields` developed and maintained by Robert Singer
-between 2018 and 2023. For more details why this fork exists, see
-[History](#history) below.
+between 2018 and 2023. For more details on why this fork exists, see
+[History](#history) below. See the [Migration Guide](https://drf-flex-fields2.readthedocs.io/en/latest/getting-started/migration/)
+in the documentation for detailed instructions. The short version is to
+upgrade your Django and DRF dependencies, if not done already, and then to
+replace `drf-flex-fields` with `drf-flex-fields2` and fix the import paths.
+
+The `drf-flex-fields2` API is stable and compatible with the original `drf-flex-fields`
+package. There are currently no plans to break the existing API. However, if breaking
+changes become necessary in the future, they will follow [semantic versioning](https://semver.org/)
+guidelines and the major version number will be incremented accordingly.
 
 Users, community contributors, and maintainers are warmly welcome to keep this
 package useful and maintained.

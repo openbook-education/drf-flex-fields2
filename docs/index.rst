@@ -39,6 +39,7 @@ Supported stack
    :caption: Getting Started
 
    getting-started/installation
+   getting-started/migration
    getting-started/quickstart
    getting-started/core-concepts
 
@@ -66,3 +67,4 @@ Supported stack
    maintainers/maintainer-development-process
    maintainers/maintainer-architecture
    maintainers/repository-setup
+   maintainers/versioning-and-releases
