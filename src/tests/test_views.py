@@ -1,6 +1,7 @@
 """Integration tests for view-layer behaviour including filter-backend query optimisation."""
 
 from http import HTTPStatus
+from types import SimpleNamespace
 from typing import cast
 from unittest.mock import patch
 
@@ -9,6 +10,7 @@ from django.db import connection
 from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
+from django.utils.datastructures import MultiValueDict
 from rest_framework.response import Response
 from rest_framework.test import APITestCase
 
@@ -123,6 +125,28 @@ class PetViewTests(APITestCase):
                 "owner": {"name": "Fred", "hobbies": "sailing"},
             },
         )
+
+    def test_list_disallowed_expand_is_filtered_by_permit_list_expands(self):
+        """List endpoint filters disallowed expand values based on ``permit_list_expands``."""
+        url = reverse("pet-list")
+        response = cast(Response, self.client.get(url + "?expand=diet", format="json"))
+        response_data = cast(list[dict[str, object]], response.data)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(response_data[0]["diet"], "")
+
+    def test_list_wildcard_expand_respects_permit_list_expands(self):
+        """Wildcard expansion on list only expands fields included in ``permit_list_expands``."""
+        url = reverse("pet-list")
+        response = cast(Response, self.client.get(url + "?expand=*", format="json"))
+        response_data = cast(list[dict[str, object]], response.data)
+
+        self.assertEqual(response.status_code, HTTPStatus.OK)
+        self.assertEqual(
+            response_data[0]["owner"],
+            {"name": "Fred", "hobbies": "sailing"},
+        )
+        self.assertEqual(response_data[0]["diet"], "")
 
     def test_create_and_return_expanded_field(self):
         """Create endpoint returns the expanded relation in its response payload."""
@@ -380,3 +404,87 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
         parameters = self.backend.get_schema_operation_parameters(view)
 
         self.assertEqual(parameters, [])
+
+
+class FlexFieldsFilterBackendOptionTests(TestCase):
+    """Unit tests for ``FlexFieldsFilterBackend`` view option branches."""
+
+    def setUp(self):
+        """Create shared data and backend instances for option tests."""
+        self.company = Company.objects.create(name="McDonalds")
+        self.person = Person.objects.create(
+            name="Fred", hobbies="sailing", employer=self.company
+        )
+        self.pet = Pet.objects.create(
+            name="Garfield",
+            toys="paper ball, string",
+            species="cat",
+            owner=self.person,
+        )
+        self.backend = FlexFieldsFilterBackend()
+
+    def _make_view(self, request, **attrs):
+        """Create a minimal view object exposing serializer hooks required by the backend."""
+        view = SimpleNamespace(**attrs)
+        view.get_serializer_class = lambda: PetViewSet.serializer_class
+        view.get_serializer_context = lambda: {"request": request}
+        view.get_serializer = lambda *args, **kwargs: PetViewSet.serializer_class(
+            *args, **kwargs
+        )
+        return view
+
+    def test_filter_queryset_returns_unchanged_for_non_get(self):
+        """Non-GET requests bypass query optimization and return the original queryset."""
+        request = SimpleNamespace(
+            method="POST",
+            query_params=MultiValueDict({"fields": ["name"]}),
+        )
+        view = self._make_view(request)
+        queryset = Pet.objects.all()
+
+        result = self.backend.filter_queryset(request, queryset, view)
+
+        self.assertIs(result, queryset)
+
+    def test_auto_remove_fields_from_query_false_keeps_full_model_projection(self):
+        """Disabling ``auto_remove_fields_from_query`` prevents ``only()`` from trimming columns."""
+        request = SimpleNamespace(
+            method="GET",
+            query_params=MultiValueDict({"fields": ["name"]}),
+        )
+        view = self._make_view(request, auto_remove_fields_from_query=False)
+        queryset = Pet.objects.all()
+
+        result = self.backend.filter_queryset(request, queryset, view)
+        sql = str(result.query)
+
+        self.assertIn('"testapp_pet"."toys"', sql)
+        self.assertIn('"testapp_pet"."species"', sql)
+
+    def test_auto_select_related_on_query_false_avoids_join_for_expanded_relation(self):
+        """Disabling ``auto_select_related_on_query`` avoids relation join optimization."""
+        request = SimpleNamespace(
+            method="GET",
+            query_params=MultiValueDict({"expand": ["owner"], "fields": ["name,owner"]}),
+        )
+        view = self._make_view(request, auto_select_related_on_query=False)
+        queryset = Pet.objects.all()
+
+        result = self.backend.filter_queryset(request, queryset, view)
+        sql = str(result.query)
+
+        self.assertNotIn('JOIN "testapp_person"', sql)
+
+    def test_required_query_fields_are_always_selected(self):
+        """``required_query_fields`` are preserved even if sparse fields would exclude them."""
+        request = SimpleNamespace(
+            method="GET",
+            query_params=MultiValueDict({"fields": ["name"]}),
+        )
+        view = self._make_view(request, required_query_fields=["species"])
+        queryset = Pet.objects.all()
+
+        result = self.backend.filter_queryset(request, queryset, view)
+        sql = str(result.query)
+
+        self.assertIn('"testapp_pet"."species"', sql)

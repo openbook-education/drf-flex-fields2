@@ -3,12 +3,15 @@
 from typing import cast
 from unittest import TestCase
 from unittest.mock import patch, PropertyMock
+from types import SimpleNamespace
 
 from django.test import override_settings
 from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 
 from rest_flex_fields2 import FlexFieldsModelSerializer
+from tests.testapp.models import Pet
+from tests.testapp.serializers import PersonSerializer, PetSerializer
 
 
 class MockRequest:
@@ -230,12 +233,99 @@ class TestFlexFieldModelSerializer(TestCase):
         self.assertEqual(result, [])
 
     def test_import_serializer_class(self):
-        """Placeholder for ``_import_serializer_class`` import tests."""
-        pass
+        """``_import_serializer_class`` returns serializer classes and clear error messages."""
+        serializer = cast(FlexFieldsModelSerializer, FlexFieldsModelSerializer())
+
+        resolved, error = serializer._import_serializer_class(
+            "tests.testapp.serializers", "CompanySerializer"
+        )
+
+        self.assertIsNotNone(resolved)
+        self.assertIsNone(error)
+
+    def test_import_serializer_class_returns_error_when_attribute_is_not_class(self):
+        """Non-class attributes are rejected with an explanatory error."""
+        serializer = cast(FlexFieldsModelSerializer, FlexFieldsModelSerializer())
+
+        with patch(
+            "rest_flex_fields2.serializers.importlib.import_module",
+            return_value=SimpleNamespace(NotAClass=123),
+        ):
+            resolved, error = serializer._import_serializer_class(
+                "some.path", "NotAClass"
+            )
+
+        self.assertIsNone(resolved)
+        self.assertEqual(
+            error,
+            "Attribute NotAClass in module some.path is not a class",
+        )
+
+    def test_import_serializer_class_returns_error_when_class_is_not_serializer(self):
+        """Classes that are not DRF serializers are rejected."""
+        serializer = cast(FlexFieldsModelSerializer, FlexFieldsModelSerializer())
+
+        resolved, error = serializer._import_serializer_class(
+            "tests.testapp.models", "Company"
+        )
+
+        self.assertIsNone(resolved)
+        self.assertEqual(
+            error,
+            "Class Company in module tests.testapp.models is not a Serializer subclass",
+        )
+
+    def test_get_serializer_class_from_lazy_string_uses_serializers_fallback(self):
+        """Lazy path resolution falls back to ``.serializers`` when needed."""
+        serializer = cast(FlexFieldsModelSerializer, FlexFieldsModelSerializer())
+
+        resolved = serializer._get_serializer_class_from_lazy_string(
+            "tests.testapp.PersonSerializer"
+        )
+
+        self.assertIs(resolved, PersonSerializer)
+
+    def test_get_serializer_class_from_lazy_string_raises_for_invalid_path(self):
+        """Invalid lazy serializer paths raise an exception with context."""
+        serializer = cast(FlexFieldsModelSerializer, FlexFieldsModelSerializer())
+
+        with self.assertRaises(Exception) as caught:
+            serializer._get_serializer_class_from_lazy_string(
+                "does.not.exist.MissingSerializer"
+            )
+
+        self.assertIn("No module found at path", str(caught.exception))
 
     def test_make_expanded_field_serializer(self):
-        """Placeholder for ``_make_expanded_field_serializer`` construction tests."""
-        pass
+        """Expanded serializers receive parent/context and nested flex options."""
+        serializer = cast(
+            PetSerializer,
+            PetSerializer(
+                Pet(name="Garfield", toys="yarn", species="cat"),
+                context={
+                    "request": MockRequest(
+                        method="GET", query_params=MultiValueDict({"expand": ["owner"]})
+                    )
+                },
+            ),
+        )
+
+        expanded_owner = cast(
+            PersonSerializer,
+            serializer._make_expanded_field_serializer(
+                "owner",
+                {"owner": ["employer"]},
+                {"owner": ["name"]},
+                {"owner": ["hobbies"]},
+            ),
+        )
+
+        self.assertIsInstance(expanded_owner, PersonSerializer)
+        self.assertIs(expanded_owner.parent, serializer)
+        self.assertIs(expanded_owner.context.get("request"), serializer.context["request"])
+        self.assertEqual(expanded_owner._flex_options_base["expand"], ["employer"])
+        self.assertEqual(expanded_owner._flex_options_base["fields"], ["name"])
+        self.assertEqual(expanded_owner._flex_options_base["omit"], ["hobbies"])
 
     @patch("rest_flex_fields2.serializers.RECURSIVE_EXPANSION_PERMITTED", False)
     def test_recursive_expansion(self):
