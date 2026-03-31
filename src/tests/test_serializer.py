@@ -9,7 +9,7 @@ from tests.testapp.models import Company, Person, Pet
 from tests.testapp.serializers import PetSerializer
 
 
-class MockRequest(object):
+class MockRequest:
     def __init__(self, query_params=None, method="GET"):
         if query_params is None:
             query_params = {}

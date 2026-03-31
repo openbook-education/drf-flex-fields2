@@ -13,6 +13,7 @@ from .config import (
 from . import utils
 from .serializers import FlexFieldsModelSerializer
 from .views import FlexFieldsModelViewSet
+from .utils import is_expanded, is_included
 
 __all__ = [
 	"EXPAND_PARAM",
@@ -26,4 +27,6 @@ __all__ = [
 	"WILDCARD_VALUES",
 	"FlexFieldsModelSerializer",
 	"FlexFieldsModelViewSet",
+	"is_expanded",
+	"is_included",
 ]

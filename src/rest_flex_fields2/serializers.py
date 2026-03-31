@@ -15,7 +15,7 @@ from .config import (
 from .utils import split_levels
 
 
-class FlexFieldsSerializerMixin(object):
+class FlexFieldsSerializerMixin:
     """
     A ModelSerializer that takes additional arguments for
     "fields", "omit" and "expand" in order to
@@ -33,7 +33,7 @@ class FlexFieldsSerializerMixin(object):
         omit = list(kwargs.pop(OMIT_PARAM, []))
         parent = kwargs.pop("parent", None)
 
-        super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.parent = parent
         self.expanded_fields = []
@@ -124,7 +124,7 @@ class FlexFieldsSerializerMixin(object):
             serializer_class = field_options
             settings = {}
 
-        if type(serializer_class) == str:
+        if isinstance(serializer_class, str):
             serializer_class = self._get_serializer_class_from_lazy_string(
                 serializer_class
             )
@@ -170,14 +170,13 @@ class FlexFieldsSerializerMixin(object):
         except ImportError:
             return (
                 None,
-                "No module found at path: %s when trying to import %s"
-                % (path, class_name),
+                f"No module found at path: {path} when trying to import {class_name}",
             )
 
         try:
             return getattr(module, class_name), None
         except AttributeError:
-            return None, "No class %s class found in module %s" % (path, class_name)
+            return None, f"No class {class_name} class found in module {path}"
 
     def _get_fields_names_to_remove(
         self,

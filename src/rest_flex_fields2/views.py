@@ -6,11 +6,11 @@
 from rest_framework import viewsets
 
 
-class FlexFieldsMixin(object):
+class FlexFieldsMixin:
     permit_list_expands = []
 
     def get_serializer_context(self):
-        default_context = super(FlexFieldsMixin, self).get_serializer_context()
+        default_context = super().get_serializer_context()
 
         if hasattr(self, "action") and self.action == "list":
             default_context["permitted_expands"] = self.permit_list_expands

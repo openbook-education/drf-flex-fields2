@@ -8,7 +8,7 @@ from rest_framework import serializers
 from rest_flex_fields2 import FlexFieldsModelSerializer
 
 
-class MockRequest(object):
+class MockRequest:
     def __init__(self, query_params=None, method="GET"):
         if query_params is None:
             query_params = MultiValueDict()

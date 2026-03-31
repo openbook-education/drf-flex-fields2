@@ -24,9 +24,9 @@ assert isinstance(EXPAND_PARAM, str), "'EXPAND_PARAM' should be a string"
 assert isinstance(FIELDS_PARAM, str), "'FIELDS_PARAM' should be a string"
 assert isinstance(OMIT_PARAM, str), "'OMIT_PARAM' should be a string"
 
-if type(WILDCARD_VALUES) not in (list, type(None)):
+if not isinstance(WILDCARD_VALUES, (list, type(None))):
     raise ValueError("'WILDCARD_EXPAND_VALUES' should be a list of strings or None")
-if type(MAXIMUM_EXPANSION_DEPTH) not in (int, type(None)):
+if not isinstance(MAXIMUM_EXPANSION_DEPTH, (int, type(None))):
     raise ValueError("'MAXIMUM_EXPANSION_DEPTH' should be a int or None")
-if type(RECURSIVE_EXPANSION_PERMITTED) is not bool:
+if not isinstance(RECURSIVE_EXPANSION_PERMITTED, bool):
     raise ValueError("'RECURSIVE_EXPANSION_PERMITTED' should be a bool")
