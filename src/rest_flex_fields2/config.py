@@ -48,7 +48,9 @@ assert isinstance(FIELDS_PARAM, str), "'FIELDS_PARAM' should be a string"
 assert isinstance(OMIT_PARAM, str),   "'OMIT_PARAM' should be a string"
 
 if not isinstance(WILDCARD_VALUES, (list, type(None))):
-    raise ValueError("'WILDCARD_EXPAND_VALUES' should be a list of strings or None")
+    raise ValueError(
+        "'WILDCARD_EXPAND_VALUES' or 'WILDCARD_VALUES' should be a list of strings or None"
+    )
 
 if not isinstance(MAXIMUM_EXPANSION_DEPTH, (int, type(None))):
     raise ValueError("'MAXIMUM_EXPANSION_DEPTH' should be a int or None")

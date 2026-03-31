@@ -160,7 +160,7 @@ class TestFlexFieldModelSerializer(TestCase):
 
         self.assertEqual(serializer._flex_options_all["fields"], ["cat", "dog"])
 
-    def test_set_expand_input_from_explicit_setting(self):
+    def test_set_fields_input_from_explicit_setting(self):
         """Explicit ``fields`` kwarg takes precedence over the query param value."""
         serializer = cast(
             FlexFieldsModelSerializer,
