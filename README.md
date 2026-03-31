@@ -6,11 +6,7 @@ Flexible dynamic fields and nested resources for Django REST Framework serialize
 
 ## Documentation
 
-The full documentation is intended to be published on Read the Docs:
-
-- Hosted docs: <https://drf-flex-fields2.readthedocs.io/>
-- Documentation source: [docs/](docs/)
-- Maintainer setup notes: [docs/REPOSITORY-SETUP.rst](docs/REPOSITORY-SETUP.rst)
+The full documentation is published on Read the Docs: <https://drf-flex-fields2.readthedocs.io/>
 
 ## Installation
 
@@ -87,11 +83,6 @@ Expanded response for `GET /people/142/?expand=country.states`:
 - Limit response payloads with `?fields=` and `?omit=`.
 - Use dot notation for nested expansion and sparse fieldsets.
 - Reuse serializers by passing `expand`, `fields`, and `omit` directly.
-
-## Development
-
-Developer setup and release workflow documentation lives in
-[docs/REPOSITORY-SETUP.rst](docs/REPOSITORY-SETUP.rst).
 
 ## License
 

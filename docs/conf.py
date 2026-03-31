@@ -4,14 +4,18 @@ import os
 import sys
 
 # Add the package source directory to sys.path so autoapi can find it.
+sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../src"))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
 
 project = "drf-flex-fields2"
 author = "Dennis Schulmeister, Robert Singer"
+copyright = "drf-flex-fields2 maintainers"
 release = "2.0.0"
 
 extensions = [
     "autoapi.extension",
+    "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
 ]
