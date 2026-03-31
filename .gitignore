@@ -6,7 +6,6 @@ dist/
 MANIFEST
 .mypy_cache/
 .idea/
-.vscode/
 drf_flex_fields.egg-info/
 venv.sh
 .venv
