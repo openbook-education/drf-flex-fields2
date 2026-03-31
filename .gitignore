@@ -12,3 +12,4 @@ venv.sh
 .venv
 venv/
 __pycache__
+.coverage

@@ -22,15 +22,17 @@ suggested branch name when creating the branch within an issue):
 Pull request expectations
 -------------------------
 
-1. Link the issue in the PR description.
-2. Describe behavior changes and test coverage.
+1. Link relevant issue in the PR description. Ideally open an issue, first.
+2. Describe behavior changes and optionally test coverage, if not obvious from the issue.
 3. Add or update documentation for user-facing changes.
 4. Update :doc:`/reference/changelog` for notable user-facing updates.
+5. Try to keep test coverage at or above **90%** (the CI workflow will fail otherwise).
 
 Checks and review
 -----------------
 
 - Required CI checks must pass.
+- Coverage checks must remain at or above the configured threshold.
 - Copilot review is requested automatically.
 - Manual maintainer review confirms behavior, tests, and documentation quality.
 

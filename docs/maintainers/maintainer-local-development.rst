@@ -39,6 +39,23 @@ Run a single test case:
 
    poetry run python src/manage.py test tests.test_serializer.YourTestCase
 
+Run test coverage
+-----------------
+
+Coverage is configured in ``pyproject.toml`` and enforced with a
+``fail_under`` threshold of **90%**.
+
+Run coverage from the repository root:
+
+.. code-block:: bash
+
+   export PYTHONPATH=src
+   poetry run coverage run --rcfile=pyproject.toml src/manage.py test tests
+   poetry run coverage report --rcfile=pyproject.toml -m
+
+If coverage fails, review the ``Missing`` column and add tests for the
+reported lines or branches before opening a PR.
+
 Build documentation
 -------------------
 
@@ -58,6 +75,7 @@ Daily checklist
 
 1. Pull latest ``main``.
 2. Run tests.
-3. Run docs build if public behavior or docs changed.
-4. Keep changelog updates in :doc:`/reference/changelog` for user-visible
+3. Run coverage and confirm it stays at or above 90%.
+4. Run docs build if public behavior or docs changed.
+5. Keep changelog updates in :doc:`/reference/changelog` for user-visible
    changes.
