@@ -4,7 +4,7 @@ from .config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 
 def is_expanded(request, field: str) -> bool:
-    """ 
+    """
     Examines request object to return boolean of whether
     passed field is expanded.
     """
