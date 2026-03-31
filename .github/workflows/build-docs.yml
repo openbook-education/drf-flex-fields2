@@ -7,10 +7,9 @@ on:
             - ".github/workflows/build-docs.yml"
             - ".readthedocs.yaml"
             - "README.md"
-            - "mkdocs.yml"
             - "poetry.lock"
             - "pyproject.toml"
-            - "doc/**"
+            - "docs/**"
             - "src/rest_flex_fields2/**"
     push:
         branches:
@@ -19,10 +18,9 @@ on:
             - ".github/workflows/build-docs.yml"
             - ".readthedocs.yaml"
             - "README.md"
-            - "mkdocs.yml"
             - "poetry.lock"
             - "pyproject.toml"
-            - "doc/**"
+            - "docs/**"
             - "src/rest_flex_fields2/**"
 
 permissions:
@@ -30,7 +28,7 @@ permissions:
 
 jobs:
     build-docs:
-        name: "Build Zensical site"
+        name: "Build Sphinx site"
         runs-on: ubuntu-latest
 
         steps:
@@ -47,4 +45,4 @@ jobs:
               run: poetry install --no-interaction --with docs
 
             - name: "Build documentation"
-              run: poetry run zensical build
+              run: poetry run sphinx-build -W --keep-going docs/ /tmp/sphinx-test-build

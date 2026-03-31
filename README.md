@@ -9,8 +9,8 @@ Flexible dynamic fields and nested resources for Django REST Framework serialize
 The full documentation is intended to be published on Read the Docs:
 
 - Hosted docs: <https://drf-flex-fields2.readthedocs.io/>
-- Documentation source: [doc/](doc/)
-- Maintainer setup notes: [doc/REPOSITORY-SETUP.md](doc/REPOSITORY-SETUP.md)
+- Documentation source: [docs/](docs/)
+- Maintainer setup notes: [docs/REPOSITORY-SETUP.rst](docs/REPOSITORY-SETUP.rst)
 
 ## Installation
 
@@ -90,10 +90,8 @@ Expanded response for `GET /people/142/?expand=country.states`:
 
 ## Development
 
-This repository uses Poetry.
-
-- Run tests from the `src` directory with `manage.py test`.
-- Build docs locally with `poetry run zensical build`.
+Developer setup and release workflow documentation lives in
+[docs/REPOSITORY-SETUP.rst](docs/REPOSITORY-SETUP.rst).
 
 ## License
 

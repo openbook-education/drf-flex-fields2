@@ -26,8 +26,9 @@ django = ">=6.0,<=7.0"
 djangorestframework = ">=3.17,<4.0"
 
 [tool.poetry.group.docs.dependencies]
-mkdocstrings = {extras = ["python"], version = "^1.0.3"}
-zensical = "^0.0.30"
+sphinx = "^8.0"
+sphinx-rtd-theme = "^3.0"
+sphinx-autoapi = "^3.0"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

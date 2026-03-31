@@ -35,7 +35,7 @@ Follow PEP 257:
 
 Docstrings may be omitted only for trivial functions. When in doubt, include a one-liner.
 
-Comments use Markdown; wrap code elements in backticks (e.g. `my_variable`).
+Comments use RestructuredText markup e.g. to highlight code elements.
 
 Test Driven Development
 =======================
@@ -53,4 +53,4 @@ Workflow:
 Documentation
 =============
 
-Update `doc/` when changing tooling or functionality.
+Update `docs/` when changing tooling or functionality.
