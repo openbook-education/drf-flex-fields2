@@ -81,7 +81,7 @@ class TestFlexFieldModelSerializer(TestCase):
             ),
         )
         serializer.parent = "Another serializer here"
-        self.assertFalse(serializer._get_query_param_value("expand"), [])
+        self.assertEqual(serializer._get_query_param_value("expand"), [])
 
     def test_get_omit_input_from_explicit_settings(self):
         serializer = cast(
