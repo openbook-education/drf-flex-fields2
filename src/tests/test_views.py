@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from pprint import pprint
 from typing import cast
 from unittest.mock import patch
 
@@ -16,7 +15,7 @@ from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WIL
 from rest_flex_fields2.filter_backends import FlexFieldsDocsFilterBackend
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
 from tests.testapp.serializers import PetStoreSerializer
-from tests.testapp.views import PetViewSet, TaggedItemViewSet
+from tests.testapp.views import PetViewSet
 
 
 class PetViewTests(APITestCase):
