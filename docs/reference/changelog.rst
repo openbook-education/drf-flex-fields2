@@ -16,7 +16,7 @@ drf-flex-fields2
 - Improved type hints and static typing compatibility (e.g., for PyLance).
 - Added missing and reworked existing docstrings for PEP 257 conformance.
 - Set up proper documentation on readthedocs.org.
-- Added more unit tests and monitor test coverage.
+- Added more unit tests and monitoring of test coverage.
 
 Original drf-flex-fields
 ------------------------

@@ -20,8 +20,8 @@ modern versions listed above.
 Installation
 ^^^^^^^^^^^^
 
-Assuming you are using `pip` for dependency management. Adapt to your package
-manger, as needed:
+Assuming you are using ``pip`` for dependency management. Adapt to your package
+manager, as needed:
 
 1. **Uninstall the old package:**
 
@@ -55,7 +55,7 @@ your codebase. This is the only code change required.
    from rest_flex_fields2 import FlexFieldsModelSerializer
 
 
-You can automate the import replacement using thw following shell commands.
+You can automate the import replacement using the following shell commands.
 
 **Linux/macOS with BSD sed:**
 
@@ -118,7 +118,7 @@ Troubleshooting
 
 **Version conflicts?**
    - Verify Django is 6.0+: ``python -m django --version``
-   - Verify DRF is 3.17.0+: ``python -c "import rest_framework; print(rest_framework.__version__)``
+   - Verify DRF is 3.17.0+: ``python -c "import rest_framework; print(rest_framework.__version__)"``
    - Update if needed: ``pip install --upgrade django djangorestframework``
 
 **Other issues?**
