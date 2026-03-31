@@ -113,7 +113,7 @@ Troubleshooting
 
 **Import errors after migration?**
    - Ensure you've updated all imports from ``rest_flex_fields`` to ``rest_flex_fields2``
-   - Run ``grep -r "rest_flex_fields[^2]" .`` to find any remaining old imports
+   - Run ``grep -rP "rest_flex_fields(?!2)" .`` to find any remaining old imports
    - Check virtualenv/venv activation: ``pip list | grep drf-flex-fields``
 
 **Version conflicts?**
