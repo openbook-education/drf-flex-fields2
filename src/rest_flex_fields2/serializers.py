@@ -206,12 +206,8 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         next_level_omits: List[str],
     ) -> bool:
         """
-        Next level omits take form of:
-
-        {
-            'this_level_field': [field_to_omit_at_next_level]
-        }
-
+        `next_level_omits` is a list of field names that have omit rules
+        applied at a deeper nesting level.
         We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
         should not omit the entire house or all the rooms, just the kitchen.
         """
