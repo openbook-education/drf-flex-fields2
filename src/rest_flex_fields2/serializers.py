@@ -92,7 +92,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         omit_fields, next_omit_fields = split_levels(flex_options["omit"])
 
         for field_name in self._get_fields_names_to_remove(
-            fields, omit_fields, sparse_fields, list(next_omit_fields.keys())
+            list(fields.keys()), omit_fields, sparse_fields, list(next_omit_fields.keys())
         ):
             fields.pop(field_name)
 
