@@ -57,7 +57,7 @@ your codebase. This is the only code change required.
 
 You can automate the import replacement using the following shell commands.
 
-**Linux/macOS with BSD sed:**
+**macOS (BSD sed):**
 
 .. code-block:: bash
 
