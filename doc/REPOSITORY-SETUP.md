@@ -1,134 +1,110 @@
-Repository and Tooling Setup
-============================
+# Repository and Tooling Setup
 
-This document describes the GitHub repository settings and configuration files that make
-the CI/CD workflows and tooling of this project work. Its purpose is to allow the setup to
-be reproduced when starting a similar project.
+This document describes the repository configuration that keeps CI, dependency management, and published documentation working.
 
 1. [GitHub Repository Settings](#github-repository-settings)
 1. [Repository Secrets](#repository-secrets)
 1. [Branch Protection Rules](#branch-protection-rules)
+1. [Read the Docs Project Settings](#read-the-docs-project-settings)
 1. [Root Configuration Files](#root-configuration-files)
 
-GitHub Repository Settings
----------------------------
+## GitHub Repository Settings
 
-The following settings must be applied to the GitHub repository to make everything work.
-They cannot be stored in files inside the repository itself and must therefore be configured
-manually in the GitHub repository settings.
+Some project behavior still depends on settings outside the repository.
 
-Repository Secrets
-------------------
+## Repository Secrets
 
-Under **Settings → Secrets and variables → Actions**, the following repository secrets must
-be created:
+Under **Settings → Secrets and variables → Actions**, create the following repository secret:
 
-| Secret name      | Description                                                         |
-|------------------|---------------------------------------------------------------------|
-| `RENOVATE_TOKEN` | Fine-grained personal access token for dependency and SBOM automation (see below) |
+| Secret name | Description |
+| --- | --- |
+| `RENOVATE_TOKEN` | Fine-grained personal access token for Renovate and SBOM automation. |
 
-`RENOVATE_TOKEN` is used by the Renovate bot to authenticate against the GitHub API.
-It is required to create pull requests and, for auto-mergeable updates, to merge them
-without manual intervention. The same token is also used by the SBOM refresh workflow
-to create or update SBOM pull requests that should trigger regular PR checks.
+`RENOVATE_TOKEN` is used to create pull requests and to merge auto-mergeable dependency updates after checks pass.
 
-The token must be owned by a user with write access to the repository. Required permissions:
+The token must belong to a user with write access to the repository and needs:
 
 - Read access to metadata
-- Read and Write access to code, issues, pull requests, and workflows
+- Read and write access to code, issues, pull requests, and workflows
 
-Branch Protection Rules
------------------------
+## Branch Protection Rules
 
-Under **Settings → Rules → Rulesets** (or the classic **Settings → Branches**), the following
-rules must be applied to the default branch (typically `main`):
+Under **Settings → Rules → Rulesets** or **Settings → Branches**, apply the following rules to the default branch.
 
 ### Require a pull request before merging
 
-Direct pushes to the default branch are blocked. All changes must go through a pull request.
-Additionally, the status check named `tests` (which corresponds to the final aggregator job
-in `.github/workflows/run-tests.yml`) must pass before a pull request can be merged. The
-router workflow always runs, detects whether any file under `src/` changed, and then calls
-either `.github/workflows/run-tests-full.yml` for the full CI suite or
-`.github/workflows/run-tests-dummy.yml` for a no-op success path.
+Direct pushes to the default branch should be blocked. All changes should go through a pull request.
 
-The full CI workflow regenerates the CycloneDX SBOM during the run and uploads it as an
-artifact, but it does **not** commit any SBOM changes back to the pull request branch.
-This avoids creating a new head commit while required checks are still evaluating.
+The required status check is `tests`, which is the final aggregator job from `.github/workflows/run-tests.yml`. That workflow routes changes either to the full test suite or to the dummy success workflow depending on whether relevant code changed.
 
-This ensures that linting, security checks, and the Django test suite all pass before any
-relevant change lands on the default branch, while documentation- or tooling-only pull
-requests still satisfy the required branch protection check without running the full suite.
-
-SBOM refresh commits are handled separately by `.github/workflows/refresh-sbom.yml`.
-That workflow opens or updates a dedicated PR for SBOM-only updates on a weekly schedule,
-after successful Renovate runs, or via manual dispatch (for example before a release).
+This keeps branch protection strict for package changes while avoiding expensive test runs for unrelated repository maintenance.
 
 ### Automatically request a Copilot code review
 
-Under **Settings → General → Pull Requests**, enable *Automatically request Copilot code
-review* (GitHub Copilot code review feature). This automatically adds a Copilot review
-request to every newly opened pull request, providing an AI-assisted first pass before a
-human reviews.
+Under **Settings → General → Pull Requests**, enable *Automatically request Copilot code review*.
 
-Root Configuration Files
-------------------------
+## Read the Docs Project Settings
 
-The following files in the repository root control the tooling and development workflow:
+The repository now includes `.readthedocs.yaml` and `mkdocs.yml`, but Read the Docs still requires one-time project configuration.
+
+Recommended setup:
+
+- Import the GitHub repository into Read the Docs.
+- Keep `main` as the default branch.
+- Ensure the Read the Docs GitHub webhook stays enabled so pushes and tags are synced automatically.
+- Use the checked-in `.readthedocs.yaml` file instead of configuring build commands manually in the UI.
+- In **Admin → Automation Rules** or the current versions UI, add a rule that activates release tags automatically.
+- If releases are tagged as `v2.0.0`, use a pattern such as `v*`. Use `*` only if every Git tag should become a published docs version.
+- Keep `latest` as the default version and optionally promote the newest release to `stable`.
+
+No additional GitHub secret is required for tag-triggered Read the Docs builds when the repository is connected through the native GitHub integration.
+
+## Root Configuration Files
 
 ### `pyproject.toml`
 
-The central configuration file for the Python side of the project. Managed by
-[Poetry](https://python-poetry.org/). Contains:
+The central project file managed by [Poetry](https://python-poetry.org/). It contains:
 
-- Project metadata (name, version, authors, license, homepage, repository URL).
-- All runtime Python dependencies with version constraints
-- Dev-only dependencies in the `[tool.poetry.group.dev.dependencies]` group.
+- Project metadata such as package name, version, authors, and repository URL
+- Runtime dependency definitions
+- Documentation dependency definitions in `[tool.poetry.group.docs.dependencies]`
 
 ### `poetry.lock`
 
-Auto-generated by Poetry. Records the exact resolved versions of all Python dependencies.
-Committed to the repository so that every developer and the CI environment use identical
-package versions.
+Generated by Poetry and committed to the repository so every environment resolves identical dependency versions.
 
 ### `renovate.json`
 
-Configuration for [Renovate](https://docs.renovatebot.com/), the automated dependency update
-bot. Key settings:
+Configuration for [Renovate](https://docs.renovatebot.com/). It manages Poetry and GitHub Actions dependencies, separates major from minor upgrades, and supports automated merges for safe updates.
 
-- Extends `config:best-practices` as the base preset.
-- Manages `poetry` and `github-actions` dependencies.
-- Limits concurrent PRs (`prConcurrentLimit: 5`, `prHourlyLimit: 2`) to avoid flooding the
-  PR list.
-- **Automerges** minor, patch, pin, and digest updates (platform automerge, no human review
-  needed) as long as all status checks pass.
-- **Requires manual review** for major updates (labelled `major-update`, `manual-review`).
-- Weekly lock-file maintenance PRs are also automerged.
-- Poetry range strategy is `bump` (declared minimums are updated, not just the lock file).
-- GitHub Actions dependency digests are pinned (`helpers:pinGitHubActionDigests`).
-- Uses semantic commit messages (`chore:` prefix for all dependency PRs).
+### `mkdocs.yml`
 
-The two workflows `.github/workflows/renovate-minor.yml` (runs weekly, Mondays 03:17 UTC)
-and `.github/workflows/renovate-major.yml` (runs monthly, 1st of month 04:17 UTC) invoke
-Renovate with the `RENOVATE_TOKEN` secret and override the package rules at runtime to
-limit each run to either minor/patch or major updates respectively.
+Primary documentation-site configuration. Defines navigation, Markdown extensions, the Material theme, and `mkdocstrings` integration for API reference pages.
+
+### `.readthedocs.yaml`
+
+Read the Docs build configuration. It installs Poetry, installs the project together with the docs dependency group, and builds the site with MkDocs.
+
+### `doc/`
+
+Source directory for the documentation site. It now contains the user guide, API reference pages, changelog, and maintainer notes.
+
+### `.github/workflows/build-docs.yml`
+
+Builds the MkDocs site in CI on documentation, packaging, and public API changes. This keeps local docs changes aligned with what Read the Docs will build.
+
+### `.github/workflows/run-tests.yml`
+
+Routes pull requests either to the full Django test suite or the dummy check, depending on whether relevant code changed.
 
 ### `.editorconfig`
 
-[EditorConfig](https://editorconfig.org/) settings applied by supporting editors (VS Code,
-JetBrains IDEs, …). Enforces project-wide formatting defaults:
-
-- `indent_style = space`, `indent_size = 4` for all files.
-- `charset = utf-8`, `end_of_line = lf`, `insert_final_newline = true`,
-  `trim_trailing_whitespace = true`.
-- Exception: `Makefile` uses tab indentation (required by make).
+Editor-wide formatting defaults, including four-space indentation and LF line endings.
 
 ### `.gitattributes`
 
-Sets per-file Git attributes. Currently marks `sbom/drf-flex-fields2.cyclonedx.json` as
-`linguist-generated=true` and `-diff` so that GitHub excludes it from language statistics
-and pull request diffs.
+Git attributes for generated or special-case files.
 
 ### `.gitignore`
 
-Standard ignore rules for Python (`__pycache__`, `.venv`, `*.pyc`).
+Ignore rules for Python cache directories, virtual environments, and local build artifacts.

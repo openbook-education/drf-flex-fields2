@@ -1,24 +1,6 @@
-# drf-flex-fields2
+# Quick Start
 
-[![Package version](https://badge.fury.io/py/drf-flex-fields2.svg)](https://pypi.org/project/drf-flex-fields2/)
-
-Flexible dynamic fields and nested resources for Django REST Framework serializers.
-
-## Documentation
-
-The full documentation is intended to be published on Read the Docs:
-
-- Hosted docs: <https://drf-flex-fields2.readthedocs.io/>
-- Documentation source: [doc/](doc/)
-- Maintainer setup notes: [doc/REPOSITORY-SETUP.md](doc/REPOSITORY-SETUP.md)
-
-## Installation
-
-```bash
-pip install drf-flex-fields2
-```
-
-## Quick Example
+This example shows a serializer that exposes a country relation by primary key unless the client explicitly asks for an expanded nested representation.
 
 ```python
 from rest_flex_fields2 import FlexFieldsModelSerializer
@@ -50,6 +32,10 @@ class PersonSerializer(FlexFieldsModelSerializer):
 
 Default response:
 
+```text
+GET /people/142/
+```
+
 ```json
 {
     "id": 142,
@@ -58,7 +44,11 @@ Default response:
 }
 ```
 
-Expanded response for `GET /people/142/?expand=country.states`:
+Expanded response:
+
+```text
+GET /people/142/?expand=country.states
+```
 
 ```json
 {
@@ -81,20 +71,4 @@ Expanded response for `GET /people/142/?expand=country.states`:
 }
 ```
 
-## Highlights
-
-- Expand nested relations with `?expand=`.
-- Limit response payloads with `?fields=` and `?omit=`.
-- Use dot notation for nested expansion and sparse fieldsets.
-- Reuse serializers by passing `expand`, `fields`, and `omit` directly.
-
-## Development
-
-This repository uses Poetry.
-
-- Run tests from the `src` directory with `manage.py test`.
-- Build docs locally with `poetry run mkdocs build --strict`.
-
-## License
-
-See [LICENSE.md](LICENSE.md).
+From there, continue with [Usage](usage.md) for nested expansion, sparse fieldsets, list-view restrictions, and lazy serializer references.
