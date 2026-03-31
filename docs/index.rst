@@ -67,3 +67,4 @@ Supported stack
    maintainers/maintainer-development-process
    maintainers/maintainer-architecture
    maintainers/repository-setup
+   maintainers/versioning-and-releases
