@@ -61,23 +61,23 @@ You can automate the import replacement using thw following shell commands.
 
 .. code-block:: bash
 
-   find . -name "*.py" -type f -exec sed -i '' 's/from rest_flex_fields/from rest_flex_fields2/g' {} +
-   find . -name "*.py" -type f -exec sed -i '' 's/import rest_flex_fields/import rest_flex_fields2/g' {} +
+   find . -name "*.py" -type f -exec sed -i '' '/from rest_flex_fields2/! s/from rest_flex_fields/from rest_flex_fields2/g' {} +
+   find . -name "*.py" -type f -exec sed -i '' '/import rest_flex_fields2/! s/import rest_flex_fields/import rest_flex_fields2/g' {} +
 
 **Linux with GNU sed:**
 
 .. code-block:: bash
 
-   find . -name "*.py" -type f -exec sed -i 's/from rest_flex_fields/from rest_flex_fields2/g' {} +
-   find . -name "*.py" -type f -exec sed -i 's/import rest_flex_fields/import rest_flex_fields2/g' {} +
+   find . -name "*.py" -type f -exec sed -i '/from rest_flex_fields2/! s/from rest_flex_fields/from rest_flex_fields2/g' {} +
+   find . -name "*.py" -type f -exec sed -i '/import rest_flex_fields2/! s/import rest_flex_fields/import rest_flex_fields2/g' {} +
 
 **Windows PowerShell:**
 
 .. code-block:: powershell
 
    Get-ChildItem -Path . -Filter *.py -Recurse | ForEach-Object {
-       (Get-Content $_.FullName) -replace 'from rest_flex_fields', 'from rest_flex_fields2' | Set-Content $_.FullName
-       (Get-Content $_.FullName) -replace 'import rest_flex_fields', 'import rest_flex_fields2' | Set-Content $_.FullName
+       (Get-Content $_.FullName) -replace 'from rest_flex_fields(?!2)', 'from rest_flex_fields2' | Set-Content $_.FullName
+       (Get-Content $_.FullName) -replace 'import rest_flex_fields(?!2)', 'import rest_flex_fields2' | Set-Content $_.FullName
    }
 
 API Compatibility
