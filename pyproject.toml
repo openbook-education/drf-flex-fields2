@@ -30,6 +30,21 @@ sphinx = "^8.0"
 sphinx-rtd-theme = "^3.0"
 sphinx-autoapi = "^3.0"
 
+[tool.poetry.group.dev.dependencies]
+coverage = "^7.8"
+
+[tool.coverage.run]
+branch = true
+source = ["src/rest_flex_fields2"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
+omit = [
+    "*/__pycache__/*",
+]
+
 [build-system]
 requires = ["poetry-core>=1.9.0"]
 build-backend = "poetry.core.masonry.api"

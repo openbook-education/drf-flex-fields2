@@ -9,6 +9,16 @@ maintaining the ecosystem around them. If you are new to flexible serializers,
 welcome. If you are evaluating this for production, welcome. If you want to
 contribute fixes, docs, tests, or ideas, welcome.
 
+1. [Relation to drf-flex-fields](#relation-to-drf-flex-fields)
+1. [Documentation](#documentation)
+1. [Installation](#installation)
+1. [Quick Example](#quick-example)
+1. [Highlights](#highlights)
+1. [License](#license)
+1. [History](#history)
+
+## Relation to drf-flex-fields
+
 This is a fork of `drf-flex-fields` developed and maintained by Robert Singer
 between 2018 and 2023. For more details why this fork exists, see
 [History](#history) below.
@@ -98,7 +108,7 @@ Expanded response for `GET /people/142/?expand=country.states`:
 
 ## License
 
-See [LICENSE.md](LICENSE.md).
+MIT. See [LICENSE.md](LICENSE.md).
 
 ## History
 
