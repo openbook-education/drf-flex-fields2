@@ -14,8 +14,10 @@ Suggested branch naming (note, that this requires manually changing the
 suggested branch name when creating the branch within an issue):
 
 - ``<issue>/feature/<short-description>``
-- ``<issue>bugfix/<short-description>``
-- ``<issue>docs/<short-description>``
+- ``<issue>/bugfix/<short-description>``
+- ``<issue>/docs/<short-description>``
+- ``<issue>/quality/<short-description>``
+- …
 
 Pull request expectations
 -------------------------
