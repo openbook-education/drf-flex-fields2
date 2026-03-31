@@ -4,12 +4,17 @@ from unittest.mock import patch
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
+from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
+from rest_flex_fields2.filter_backends import FlexFieldsDocsFilterBackend
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
+from tests.testapp.serializers import PetStoreSerializer
+from tests.testapp.views import PetViewSet, TaggedItemViewSet
 
 
 class PetViewTests(APITestCase):
@@ -293,3 +298,49 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
         )
 
         self.assertEqual(len(response.json()), 4)
+
+
+class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
+    def setUp(self):
+        self.backend = FlexFieldsDocsFilterBackend()
+
+    def test_get_schema_operation_parameters_for_flex_fields_view(self):
+        view = PetViewSet()
+
+        parameters = self.backend.get_schema_operation_parameters(view)
+
+        self.assertEqual(len(parameters), 3)
+        self.assertEqual([p["name"] for p in parameters], [FIELDS_PARAM, OMIT_PARAM, EXPAND_PARAM])
+
+        fields_parameter = next(p for p in parameters if p["name"] == FIELDS_PARAM)
+        self.assertEqual(fields_parameter["schema"]["type"], "string")
+        self.assertIn("example", fields_parameter)
+
+        omit_parameter = next(p for p in parameters if p["name"] == OMIT_PARAM)
+        self.assertEqual(omit_parameter["schema"]["type"], "string")
+        self.assertIn("example", omit_parameter)
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        self.assertEqual(expand_parameter["schema"]["type"], "array")
+        self.assertEqual(expand_parameter["schema"]["items"]["type"], "string")
+
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+        self.assertIn("owner", expand_enum)
+        self.assertIn("owner.employer", expand_enum)
+        self.assertIn("sold_from", expand_enum)
+        self.assertIn("diet", expand_enum)
+
+        for wildcard_value in WILDCARD_VALUES or []:
+            self.assertIn(wildcard_value, expand_enum)
+
+    def test_get_schema_operation_parameters_for_non_flex_fields_view(self):
+        class NonFlexFieldsViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return PetStoreSerializer
+
+        view = NonFlexFieldsViewSet()
+
+        parameters = self.backend.get_schema_operation_parameters(view)
+
+        self.assertEqual(parameters, [])
