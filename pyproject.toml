@@ -6,8 +6,8 @@ authors = ["Robert Singer", "Dennis Schulmeister"]
 maintainers = ["Dennis Schulmeister"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://github.com/DennisSchulmeister/drf-flex-fields2"
-repository = "https://github.com/DennisSchulmeister/drf-flex-fields2"
+homepage = "https://github.com/openbook-education/drf-flex-fields2"
+repository = "https://github.com/openbook-education/drf-flex-fields2"
 keywords = ["django", "rest", "api", "dynamic", "fields"]
 packages = [{ include = "rest_flex_fields2", from = "src" }]
 classifiers = [
@@ -24,6 +24,11 @@ classifiers = [
 python = ">=3.12,<4.0"
 django = ">=6.0,<=7.0"
 djangorestframework = ">=3.17,<4.0"
+
+[tool.poetry.group.docs.dependencies]
+sphinx = "^8.0"
+sphinx-rtd-theme = "^3.0"
+sphinx-autoapi = "^3.0"
 
 [build-system]
 requires = ["poetry-core>=1.9.0"]

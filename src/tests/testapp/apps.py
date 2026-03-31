@@ -2,4 +2,5 @@ from django.apps import AppConfig
 
 
 class TestappConfig(AppConfig):
-    name = 'tests.testapp'
+    """Mock Django application used for unit tests."""
+    name = "tests.testapp"

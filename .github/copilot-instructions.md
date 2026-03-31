@@ -1,38 +1,56 @@
-We use poetry to manage our Python dependencies. So when talking about
-Python dependencies, please use the `poetry` command.
+Tooling
+=======
 
-We always write strings with double quotes, unless the strings include
-double quotes themselves. In that case, we use single quotes.
+We use `poetry` for dependency management. Always use `poetry` commands.
 
-In all programming languages we use four spaces for indentation.
+Before running shell commands requiring Python packages, activate the environment: `poetry shell`
 
-In Python we never put the quotes of a docstring in the same line as the text.
+Run unit tests with Django from the `src` directory: `manage.py test`
 
-In Python we often use the `from x import y` syntax. When importing from
-the same project, we use a relative import like `from .models import MyModel`.
-Imports should be grouped by standard library, third-party libraries, and own.
-Within each group, imports should be sorted alphabetically by module name.
-The import keywords should be aligned vertically.
+Code Conventions
+================
 
-Comments use markdown syntax. Programming language keywords, variables
-etc. are wrapped in backticks, e.g. `my_variable`.
+- Use double quotes for strings (single quotes only if needed).
+- Use four spaces for indentation (all languages).
+- Prefer `from x import y`; use relative imports within the project (`from .models import MyModel`).
+- Group imports: standard library, third-party, local; sort alphabetically within groups.
+- Separate logical code blocks with one blank line.
 
-We always use one empty line to separate logical blocks of code. So please try to
-avoid writing long blocks of code without empty lines.
+Formatting:
 
-When breaking long method calls into multiple lines, please vertically align the
-equal signs with at least one space before and one space after the equal sign.
-Also add trailing commas, and use one empty line before the first line of the
-method call.
+- Align `=` in multi-line calls; use spaces around `=`, trailing commas, and a blank line before the call.
+- Align dictionary values in multi-line definitions.
+- Use type hints.
 
-When breaking long dictionary definitions into multiple lines, please vertically
-align the values with at least one space after the colon.
+Docstrings
+==========
 
-Remember: Before you can execute shell commands that need to access python packages,
-first execute `poetry shell` to switch into the virtual environment.
+Follow PEP 257:
 
-When modifying the repo setup or tooling, please update the documentation in the
-`doc` directory accordingly.
+- Use `"""..."""` for all public modules, classes, functions, and methods.
+- One-line summary in imperative mood, ending with a period.
+- Blank line between summary and details.
+- Keep concise; document args, returns, side effects if needed.
+- No signature repetition.
 
-Unit tests need to be run with `manage.py test` (Django test framework) from within
-the `src` directory.
+Docstrings may be omitted only for trivial functions. When in doubt, include a one-liner.
+
+Comments use RestructuredText markup e.g. to highlight code elements.
+
+Test Driven Development
+=======================
+
+All code must be unit-tested.
+
+Workflow:
+
+1. Extend documentation (specification)
+2. Write tests
+3. Implement until tests pass
+4. Run type and quality checks
+5. Update documentation if needed
+
+Documentation
+=============
+
+Update `docs/` when changing tooling or functionality.

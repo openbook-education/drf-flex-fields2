@@ -1,3 +1,11 @@
+"""
+Utility helpers for ``rest_flex_fields2``.
+
+Provides request-inspection functions (`is_expanded`, `is_included`) and
+the `split_levels` helper that partitions dot-notation field lists into
+current-level and next-level fragments.
+"""
+
 from collections.abc import Iterable
 
 from .config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
@@ -5,8 +13,11 @@ from .config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 def is_expanded(request, field: str) -> bool:
     """
-    Examines request object to return boolean of whether
-    passed field is expanded.
+    Return whether `field` is requested for expansion.
+
+    Inspects the ``expand`` query parameter on `request`.  Returns
+    ``True`` when `field` appears in the comma-separated expand list, or
+    when a wildcard value (e.g. ``*`` or ``~all``) is present.
     """
     expand_value = request.query_params.get(EXPAND_PARAM)
     expand_fields = []
@@ -21,10 +32,11 @@ def is_expanded(request, field: str) -> bool:
 
 def is_included(request, field: str) -> bool:
     """
-    Examines request object to return boolean of whether
-    passed field has been excluded, either because `fields` is
-    set, and it is not among them, or because `omit` is set and
-    it is among them.
+    Return whether `field` should be included in the response.
+
+    Returns ``False`` when the ``fields`` sparse-fieldset parameter is
+    present and `field` is not listed, or when the ``omit`` parameter is
+    present and `field` is listed.  Returns ``True`` otherwise.
     """
     sparse_value = request.query_params.get(FIELDS_PARAM)
     omit_value = request.query_params.get(OMIT_PARAM)
@@ -49,9 +61,14 @@ def is_included(request, field: str) -> bool:
 
 def split_levels(fields):
     """
-    Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into
-    current-level fields ['a', 'c'] and next-level fields
-    {'a': ['b', 'd']}.
+    Split a dot-notation field list into current-level and next-level parts.
+
+    Given an iterable such as ``['a', 'a.b', 'a.d', 'c']``, returns a
+    tuple ``(first_level, next_level)`` where ``first_level`` is the
+    deduplicated list of top-level names (e.g. ``['a', 'c']``) and
+    ``next_level`` is a dict mapping each name to its remaining path
+    fragments (e.g. ``{'a': ['b', 'd']}``).  A plain string is treated
+    as a comma-separated field list.
     """
     first_level_fields = []
     next_level_fields = {}
