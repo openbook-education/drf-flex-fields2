@@ -11,8 +11,10 @@ from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
 from django.utils.datastructures import MultiValueDict
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.test import APITestCase
+from rest_framework.viewsets import GenericViewSet
 
 from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
 from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
@@ -253,11 +255,6 @@ class PetViewWithSelectFieldsFilterBackendTests(PetViewTests):
             ),
         )
 
-    # todo: test many to one
-    # todo: test many to many
-    # todo: test view options for SelectFieldsFilterBackend
-
-
 @override_settings(DEBUG=True)
 @patch("tests.testapp.views.TaggedItemViewSet.filter_backends", [FlexFieldsFilterBackend])
 class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
@@ -405,6 +402,58 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
         self.assertEqual(parameters, [])
 
+    def test_filter_queryset_is_noop_for_docs_backend(self):
+        """Docs backend filter method returns querysets unchanged."""
+        queryset = Pet.objects.all()
+        result = self.backend.filter_queryset(None, queryset, None)
+        self.assertIs(result, queryset)
+
+    def test_get_field_returns_none_for_missing_model_field(self):
+        """Unknown model fields return ``None`` from helper lookup."""
+        self.assertIsNone(self.backend._get_field("does_not_exist", Pet))
+
+    def test_get_expandable_fields_returns_empty_for_non_flex_serializer(self):
+        """Serializer classes without expandable metadata return an empty list."""
+
+        class PlainSerializer:
+            class Meta:
+                fields = ["id"]
+
+        self.assertEqual(self.backend._get_expandable_fields(PlainSerializer), [])
+
+    def test_get_expandable_fields_supports_tuple_with_lazy_serializer_path(self):
+        """Tuple expandable-field declarations resolve lazy serializer strings correctly."""
+
+        class TupleExpandableSerializer:
+            class Meta:
+                expandable_fields = {
+                    "owner": ("tests.testapp.PersonSerializer", {"read_only": True}),
+                }
+
+        expanded = self.backend._get_expandable_fields(TupleExpandableSerializer)
+
+        self.assertIn("owner", expanded)
+        self.assertIn("owner.employer", expanded)
+
+    def test_get_serializer_class_from_lazy_string_raises_for_invalid_path(self):
+        """Invalid lazy serializer paths raise an exception in schema helper logic."""
+        with self.assertRaises(Exception):
+            self.backend._get_serializer_class_from_lazy_string("tests.missing.Serializer")
+
+    def test_import_serializer_class_returns_none_for_non_serializer(self):
+        """Import helper returns ``None`` when target class is not a serializer."""
+        result = self.backend._import_serializer_class("tests.testapp.models", "Pet")
+        self.assertIsNone(result)
+
+    def test_get_fields_returns_empty_string_when_meta_fields_missing(self):
+        """Schema field helper returns an empty string when ``Meta.fields`` is absent."""
+
+        class SerializerWithoutFields:
+            class Meta:
+                pass
+
+        self.assertEqual(self.backend._get_fields(SerializerWithoutFields), "")
+
 
 class FlexFieldsFilterBackendOptionTests(TestCase):
     """Unit tests for ``FlexFieldsFilterBackend`` view option branches."""
@@ -442,7 +491,29 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = self._make_view(request)
         queryset = Pet.objects.all()
 
-        result = self.backend.filter_queryset(request, queryset, view)
+        result = self.backend.filter_queryset(
+            cast(Request, request),
+            queryset,
+            cast(GenericViewSet, view),
+        )
+
+        self.assertIs(result, queryset)
+
+    def test_filter_queryset_returns_unchanged_for_non_flex_serializer(self):
+        """Views with non-flex serializers bypass query optimization."""
+        request = SimpleNamespace(method="GET", query_params=MultiValueDict())
+        view = SimpleNamespace(
+            get_serializer_class=lambda: PetStoreSerializer,
+            get_serializer_context=lambda: {"request": request},
+            get_serializer=lambda *args, **kwargs: PetStoreSerializer(*args, **kwargs),
+        )
+        queryset = Pet.objects.all()
+
+        result = self.backend.filter_queryset(
+            cast(Request, request),
+            queryset,
+            cast(GenericViewSet, view),
+        )
 
         self.assertIs(result, queryset)
 
@@ -455,7 +526,11 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = self._make_view(request, auto_remove_fields_from_query=False)
         queryset = Pet.objects.all()
 
-        result = self.backend.filter_queryset(request, queryset, view)
+        result = self.backend.filter_queryset(
+            cast(Request, request),
+            queryset,
+            cast(GenericViewSet, view),
+        )
         sql = str(result.query)
 
         self.assertIn('"testapp_pet"."toys"', sql)
@@ -470,7 +545,11 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = self._make_view(request, auto_select_related_on_query=False)
         queryset = Pet.objects.all()
 
-        result = self.backend.filter_queryset(request, queryset, view)
+        result = self.backend.filter_queryset(
+            cast(Request, request),
+            queryset,
+            cast(GenericViewSet, view),
+        )
         sql = str(result.query)
 
         self.assertNotIn('JOIN "testapp_person"', sql)
@@ -484,7 +563,11 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = self._make_view(request, required_query_fields=["species"])
         queryset = Pet.objects.all()
 
-        result = self.backend.filter_queryset(request, queryset, view)
+        result = self.backend.filter_queryset(
+            cast(Request, request),
+            queryset,
+            cast(GenericViewSet, view),
+        )
         sql = str(result.query)
 
         self.assertIn('"testapp_pet"."species"', sql)
