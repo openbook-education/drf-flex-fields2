@@ -3,14 +3,16 @@
     collection is request via the list method.
 """
 
+from typing import Any
 from rest_framework import viewsets
 
 
-class FlexFieldsMixin(object):
-    permit_list_expands = []
+class FlexFieldsMixin:
+    permit_list_expands: list[str] = []
+    action: str | None = None
 
-    def get_serializer_context(self):
-        default_context = super(FlexFieldsMixin, self).get_serializer_context()
+    def get_serializer_context(self) -> dict[str, Any]:
+        default_context = super().get_serializer_context()  # type: ignore[misc]
 
         if hasattr(self, "action") and self.action == "list":
             default_context["permitted_expands"] = self.permit_list_expands

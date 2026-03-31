@@ -1,3 +1,4 @@
+from typing import cast
 from unittest.mock import patch
 
 from django.test import TestCase
@@ -9,7 +10,7 @@ from tests.testapp.models import Company, Person, Pet
 from tests.testapp.serializers import PetSerializer
 
 
-class MockRequest(object):
+class MockRequest:
     def __init__(self, query_params=None, method="GET"):
         if query_params is None:
             query_params = {}
@@ -127,7 +128,13 @@ class TestSerialize(TestCase):
         request = MockRequest(query_params=MultiValueDict({"expand": ["owner"]}))
         serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
-        self.assertEqual(serializer.fields["owner"].context.get("request"), request)
+
+        serializer_with_context = cast(serializers.Serializer, serializer)
+        self.assertEqual(
+            cast(serializers.Serializer, serializer_with_context.fields["owner"])
+            .context.get("request"),
+            request,
+        )
 
         serializer = PetSerializer(pet, expand=(field for field in ("owner",)))
         self.assertEqual(serializer.data, expected_serializer_data)
@@ -160,8 +167,15 @@ class TestSerialize(TestCase):
         )
         serializer = PetSerializer(pet, context={"request": request})
         self.assertEqual(serializer.data, expected_serializer_data)
+
+        serializer_with_context = cast(serializers.Serializer, serializer)
+        owner_serializer = cast(
+            serializers.Serializer,
+            serializer_with_context.fields["owner"],
+        )
         self.assertEqual(
-            serializer.fields["owner"].fields["employer"].context.get("request"),
+            cast(serializers.Serializer, owner_serializer.fields["employer"])
+            .context.get("request"),
             request,
         )
 

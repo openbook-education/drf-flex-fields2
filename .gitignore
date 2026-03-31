@@ -11,3 +11,4 @@ drf_flex_fields.egg-info/
 venv.sh
 .venv
 venv/
+__pycache__

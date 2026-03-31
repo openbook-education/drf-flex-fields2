@@ -1,15 +1,21 @@
 from http import HTTPStatus
-from pprint import pprint
+from typing import cast
 from unittest.mock import patch
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import connection
+from django.test import TestCase
 from django.test import override_settings
 from django.urls import reverse
+from rest_framework.response import Response
 from rest_framework.test import APITestCase
 
 from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
+from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
+from rest_flex_fields2.filter_backends import FlexFieldsDocsFilterBackend
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
+from tests.testapp.serializers import PetStoreSerializer
+from tests.testapp.views import PetViewSet
 
 
 class PetViewTests(APITestCase):
@@ -30,8 +36,8 @@ class PetViewTests(APITestCase):
         Pet.objects.all().delete()
 
     def test_retrieve_expanded(self):
-        url = reverse("pet-detail", args=[self.pet.id])
-        response = self.client.get(url + "?expand=owner", format="json")
+        url = reverse("pet-detail", args=[self.pet.pk])
+        response = cast(Response, self.client.get(url + "?expand=owner", format="json"))
 
         self.assertEqual(
             response.data,
@@ -46,15 +52,18 @@ class PetViewTests(APITestCase):
         )
 
     def test_retrieve_sparse(self):
-        url = reverse("pet-detail", args=[self.pet.id])
-        response = self.client.get(url + "?fields=name,species", format="json")
+        url = reverse("pet-detail", args=[self.pet.pk])
+        response = cast(
+            Response,
+            self.client.get(url + "?fields=name,species", format="json"),
+        )
 
         self.assertEqual(response.data, {"name": "Garfield", "species": "cat"})
 
     def test_retrieve_sparse_and_deep_expanded(self):
-        url = reverse("pet-detail", args=[self.pet.id])
+        url = reverse("pet-detail", args=[self.pet.pk])
         url = url + "?fields=owner&expand=owner.employer"
-        response = self.client.get(url, format="json")
+        response = cast(Response, self.client.get(url, format="json"))
 
         self.assertEqual(
             response.data,
@@ -68,9 +77,9 @@ class PetViewTests(APITestCase):
         )
 
     def test_retrieve_all_fields_at_root_and_sparse_fields_at_next_level(self):
-        url = reverse("pet-detail", args=[self.pet.id])
+        url = reverse("pet-detail", args=[self.pet.pk])
         url = url + "?fields=*,owner.name&expand=owner"
-        response = self.client.get(url, format="json")
+        response = cast(Response, self.client.get(url, format="json"))
 
         self.assertEqual(
             response.data,
@@ -89,10 +98,11 @@ class PetViewTests(APITestCase):
     def test_list_expanded(self):
         url = reverse("pet-list")
         url = url + "?expand=owner"
-        response = self.client.get(url, format="json")
+        response = cast(Response, self.client.get(url, format="json"))
+        response_data = cast(list[dict[str, object]], response.data)
 
         self.assertEqual(
-            response.data[0],
+            response_data[0],
             {
                 "diet": "",
                 "name": "Garfield",
@@ -107,17 +117,20 @@ class PetViewTests(APITestCase):
         url = reverse("pet-list")
         url = url + "?expand=owner"
 
-        response = self.client.post(
+        response = cast(
+            Response,
+            self.client.post(
             url,
             {
                 "diet": "rats",
-                "owner": self.person.id,
+                "owner": self.person.pk,
                 "species": "snake",
                 "toys": "playstation",
                 "name": "Freddy",
                 "sold_from": None,
             },
             format="json",
+            ),
         )
 
         self.assertEqual(
@@ -133,8 +146,8 @@ class PetViewTests(APITestCase):
         )
 
     def test_expand_drf_serializer_field(self):
-        url = reverse("pet-detail", args=[self.pet.id])
-        response = self.client.get(url + "?expand=diet", format="json")
+        url = reverse("pet-detail", args=[self.pet.pk])
+        response = cast(Response, self.client.get(url + "?expand=diet", format="json"))
 
         self.assertEqual(
             response.data,
@@ -144,7 +157,7 @@ class PetViewTests(APITestCase):
                 "toys": "paper ball, string",
                 "sold_from": None,
                 "species": "cat",
-                "owner": self.pet.owner_id,
+                "owner": self.pet.owner.pk,
             },
         )
 
@@ -153,8 +166,11 @@ class PetViewTests(APITestCase):
         self.pet.sold_from = petco
         self.pet.save()
 
-        url = reverse("pet-detail", args=[self.pet.id])
-        response = self.client.get(url + "?expand=sold_from", format="json")
+        url = reverse("pet-detail", args=[self.pet.pk])
+        response = cast(
+            Response,
+            self.client.get(url + "?expand=sold_from", format="json"),
+        )
 
         self.assertEqual(
             response.data,
@@ -162,9 +178,9 @@ class PetViewTests(APITestCase):
                 "diet": "",
                 "name": "Garfield",
                 "toys": "paper ball, string",
-                "sold_from": {"id": petco.id, "name": "PetCo"},
+                "sold_from": {"id": petco.pk, "name": "PetCo"},
                 "species": "cat",
-                "owner": self.pet.owner_id,
+                "owner": self.pet.owner.pk,
             },
         )
 
@@ -222,19 +238,19 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
 
         self.tagged_item1 = TaggedItem.objects.create(
             content_type=ContentType.objects.get_for_model(Pet),
-            object_id=self.pet1.id
+            object_id=self.pet1.pk
         )
         self.tagged_item2 = TaggedItem.objects.create(
             content_type=ContentType.objects.get_for_model(Pet),
-            object_id=self.pet2.id
+            object_id=self.pet2.pk
         )
         self.tagged_item3 = TaggedItem.objects.create(
             content_type=ContentType.objects.get_for_model(Person),
-            object_id=self.person.id
+            object_id=self.person.pk
         )
         self.tagged_item4 = TaggedItem.objects.create(
             content_type=ContentType.objects.get_for_model(Company),
-            object_id=self.company.id
+            object_id=self.company.pk
         )
 
         url = reverse("tagged-item-list")
@@ -267,7 +283,7 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
                 '"testapp_pet"."owner_id", '
                 '"testapp_pet"."sold_from_id", '
                 '"testapp_pet"."diet" '
-                'FROM "testapp_pet" WHERE "testapp_pet"."id" IN ({0}, {1})'.format(self.pet1.id, self.pet2.id)
+                'FROM "testapp_pet" WHERE "testapp_pet"."id" IN ({0}, {1})'.format(self.pet1.pk, self.pet2.pk)
             )
         )
         self.assertEqual(
@@ -278,7 +294,7 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
                 '"testapp_person"."name", '
                 '"testapp_person"."hobbies", '
                 '"testapp_person"."employer_id" '
-                'FROM "testapp_person" WHERE "testapp_person"."id" IN ({0})'.format(self.person.id)
+                'FROM "testapp_person" WHERE "testapp_person"."id" IN ({0})'.format(self.person.pk)
             )
         )
         self.assertEqual(
@@ -288,8 +304,54 @@ class TaggedItemViewWithSelectFieldsFilterBackendTests(APITestCase):
                 '"testapp_company"."id", '
                 '"testapp_company"."name", '
                 '"testapp_company"."public" '
-                'FROM "testapp_company" WHERE "testapp_company"."id" IN ({0})'.format(self.company.id)
+                'FROM "testapp_company" WHERE "testapp_company"."id" IN ({0})'.format(self.company.pk)
             )
         )
 
         self.assertEqual(len(response.json()), 4)
+
+
+class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
+    def setUp(self):
+        self.backend = FlexFieldsDocsFilterBackend()
+
+    def test_get_schema_operation_parameters_for_flex_fields_view(self):
+        view = PetViewSet()
+
+        parameters = self.backend.get_schema_operation_parameters(view)
+
+        self.assertEqual(len(parameters), 3)
+        self.assertEqual([p["name"] for p in parameters], [FIELDS_PARAM, OMIT_PARAM, EXPAND_PARAM])
+
+        fields_parameter = next(p for p in parameters if p["name"] == FIELDS_PARAM)
+        self.assertEqual(fields_parameter["schema"]["type"], "string")
+        self.assertIn("example", fields_parameter)
+
+        omit_parameter = next(p for p in parameters if p["name"] == OMIT_PARAM)
+        self.assertEqual(omit_parameter["schema"]["type"], "string")
+        self.assertIn("example", omit_parameter)
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        self.assertEqual(expand_parameter["schema"]["type"], "array")
+        self.assertEqual(expand_parameter["schema"]["items"]["type"], "string")
+
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+        self.assertIn("owner", expand_enum)
+        self.assertIn("owner.employer", expand_enum)
+        self.assertIn("sold_from", expand_enum)
+        self.assertIn("diet", expand_enum)
+
+        for wildcard_value in WILDCARD_VALUES or []:
+            self.assertIn(wildcard_value, expand_enum)
+
+    def test_get_schema_operation_parameters_for_non_flex_fields_view(self):
+        class NonFlexFieldsViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return PetStoreSerializer
+
+        view = NonFlexFieldsViewSet()
+
+        parameters = self.backend.get_schema_operation_parameters(view)
+
+        self.assertEqual(parameters, [])

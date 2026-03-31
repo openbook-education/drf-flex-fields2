@@ -3,7 +3,7 @@ from django.test import TestCase
 from rest_flex_fields2 import is_included, is_expanded, WILDCARD_ALL, WILDCARD_ASTERISK
 
 
-class MockRequest(object):
+class MockRequest:
     def __init__(self, query_params=None, method="GET"):
         if query_params is None:
             query_params = {}

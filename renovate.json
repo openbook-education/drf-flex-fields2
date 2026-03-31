@@ -27,7 +27,7 @@
         "automerge": true,
         "platformAutomerge": true,
         "addLabels": [
-            "weekly-update"
+            "minor-update"
         ]
     },
     "packageRules": [

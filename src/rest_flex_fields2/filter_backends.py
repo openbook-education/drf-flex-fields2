@@ -1,13 +1,14 @@
 from functools import lru_cache
-from typing import Optional
+import importlib
+from typing import Any, Optional
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
-from rest_framework.compat import coreapi, coreschema
+from rest_framework import serializers
 from rest_framework.filters import BaseFilterBackend
-from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.request import Request
 
 from .config import (
     EXPAND_PARAM,
@@ -41,73 +42,83 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return None
 
     @staticmethod
-    def _get_expandable_fields(serializer_class: FlexFieldsModelSerializer) -> list:
-        expandable_fields = list(getattr(serializer_class.Meta, 'expandable_fields').items())
+    def _get_expandable_fields(serializer_class: Any) -> list:
+        # Use the same fallback logic as _expandable_fields in serializers.py
+        # Check Meta.expandable_fields first, then serializer_class.expandable_fields
+        meta = getattr(serializer_class, "Meta", None)
+        if meta is not None and hasattr(meta, "expandable_fields"):
+            expandable_fields_dict = meta.expandable_fields
+        elif hasattr(serializer_class, "expandable_fields"):
+            expandable_fields_dict = serializer_class.expandable_fields
+        else:
+            return []
+
+        expandable_fields = list(expandable_fields_dict.items())
         expand_list = []
+
         while expandable_fields:
-            key, cls = expandable_fields.pop()
-            cls = cls[0] if hasattr(cls, '__iter__') else cls
+            key, field_options = expandable_fields.pop()
+
+            if isinstance(field_options, tuple):
+                nested_serializer_class = field_options[0]
+            else:
+                nested_serializer_class = field_options
+
+            if isinstance(nested_serializer_class, str):
+                nested_serializer_class = FlexFieldsDocsFilterBackend._get_serializer_class_from_lazy_string(
+                    nested_serializer_class
+                )
 
             expand_list.append(key)
 
-            if hasattr(cls, "Meta") and issubclass(cls, FlexFieldsSerializerMixin) and hasattr(cls.Meta, "expandable_fields"):
-                next_layer = getattr(cls.Meta, 'expandable_fields')
-                expandable_fields.extend([(f"{key}.{k}", cls) for k, cls in list(next_layer.items())])
+            meta = getattr(nested_serializer_class, "Meta", None)
+            if (
+                meta
+                and isinstance(nested_serializer_class, type)
+                and issubclass(nested_serializer_class, FlexFieldsSerializerMixin)
+                and hasattr(meta, "expandable_fields")
+            ):
+                next_layer = getattr(meta, "expandable_fields")
+                expandable_fields.extend(
+                    [(f"{key}.{next_key}", next_value) for next_key, next_value in list(next_layer.items())]
+                )
 
         return expand_list
+
+    @staticmethod
+    def _get_serializer_class_from_lazy_string(full_lazy_path: str):
+        path_parts = full_lazy_path.split(".")
+        class_name = path_parts.pop()
+        path = ".".join(path_parts)
+
+        serializer_class = FlexFieldsDocsFilterBackend._import_serializer_class(path, class_name)
+        if serializer_class is None and not path.endswith(".serializers"):
+            serializer_class = FlexFieldsDocsFilterBackend._import_serializer_class(
+                f"{path}.serializers", class_name
+            )
+
+        if serializer_class:
+            return serializer_class
+
+        raise Exception(f"Could not resolve serializer class '{class_name}' from path '{path}'.")
+
+    @staticmethod
+    def _import_serializer_class(path: str, class_name: str):
+        try:
+            module = importlib.import_module(path)
+        except ImportError:
+            return None
+
+        serializer_class = getattr(module, class_name, None)
+        if isinstance(serializer_class, type) and issubclass(serializer_class, serializers.Serializer):
+            return serializer_class
+
+        return None
 
     @staticmethod
     def _get_fields(serializer_class):
         fields = getattr(serializer_class.Meta, "fields", [])
         return ",".join(fields)
-
-    def get_schema_fields(self, view):
-        assert (
-                coreapi is not None
-        ), "coreapi must be installed to use `get_schema_fields()`"
-        assert (
-                coreschema is not None
-        ), "coreschema must be installed to use `get_schema_fields()`"
-
-        serializer_class = view.get_serializer_class()
-        if not issubclass(serializer_class, FlexFieldsSerializerMixin):
-            return []
-
-        fields = self._get_fields(serializer_class)
-        expandable_fields_joined = ",".join(self._get_expandable_fields(serializer_class))
-
-        return [
-            coreapi.Field(
-                name=FIELDS_PARAM,
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Selected fields",
-                    description="Specify required fields by comma",
-                ),
-                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
-            ),
-            coreapi.Field(
-                name=OMIT_PARAM,
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Omitted fields",
-                    description="Specify omitted fields by comma",
-                ),
-                example=(fields or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
-            ),
-            coreapi.Field(
-                name=EXPAND_PARAM,
-                required=False,
-                location="query",
-                schema=coreschema.String(
-                    title="Expanded fields",
-                    description="Specify expanded fields by comma",
-                ),
-                example=(expandable_fields_joined or "field1,field2,nested.field") + "," + WILDCARD_VALUES_JOINED,
-            ),
-        ]
 
     def get_schema_operation_parameters(self, view):
         serializer_class = view.get_serializer_class()

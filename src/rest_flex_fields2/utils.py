@@ -4,8 +4,9 @@ from .config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 
 def is_expanded(request, field: str) -> bool:
-    """ Examines request object to return boolean of whether
-        passed field is expanded.
+    """
+    Examines request object to return boolean of whether
+    passed field is expanded.
     """
     expand_value = request.query_params.get(EXPAND_PARAM)
     expand_fields = []
@@ -19,10 +20,11 @@ def is_expanded(request, field: str) -> bool:
 
 
 def is_included(request, field: str) -> bool:
-    """ Examines request object to return boolean of whether
-        passed field has been excluded, either because `fields` is
-        set, and it is not among them, or because `omit` is set and
-        it is among them.
+    """
+    Examines request object to return boolean of whether
+    passed field has been excluded, either because `fields` is
+    set, and it is not among them, or because `omit` is set and
+    it is among them.
     """
     sparse_value = request.query_params.get(FIELDS_PARAM)
     omit_value = request.query_params.get(OMIT_PARAM)
@@ -47,9 +49,9 @@ def is_included(request, field: str) -> bool:
 
 def split_levels(fields):
     """
-        Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into
-        current-level fields ['a', 'c'] and next-level fields
-        {'a': ['b', 'd']}.
+    Convert dot-notation such as ['a', 'a.b', 'a.d', 'c'] into
+    current-level fields ['a', 'c'] and next-level fields
+    {'a': ['b', 'd']}.
     """
     first_level_fields = []
     next_level_fields = {}

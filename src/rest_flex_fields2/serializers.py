@@ -1,6 +1,6 @@
 import copy
 import importlib
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Type
 
 from rest_framework import serializers
 
@@ -15,7 +15,7 @@ from .config import (
 from .utils import split_levels
 
 
-class FlexFieldsSerializerMixin(object):
+class FlexFieldsSerializerMixin(serializers.Serializer):
     """
     A ModelSerializer that takes additional arguments for
     "fields", "omit" and "expand" in order to
@@ -33,7 +33,7 @@ class FlexFieldsSerializerMixin(object):
         omit = list(kwargs.pop(OMIT_PARAM, []))
         parent = kwargs.pop("parent", None)
 
-        super(FlexFieldsSerializerMixin, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.parent = parent
         self.expanded_fields = []
@@ -54,12 +54,9 @@ class FlexFieldsSerializerMixin(object):
             "omit": (self._get_query_param_value(OMIT_PARAM) if not omit else []),
         }
         self._flex_options_all = {
-            "expand": self._flex_options_base["expand"]
-            + self._flex_options_rep_only["expand"],
-            "fields": self._flex_options_base["fields"]
-            + self._flex_options_rep_only["fields"],
-            "omit": self._flex_options_base["omit"]
-            + self._flex_options_rep_only["omit"],
+            "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
+            "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
+            "omit":   self._flex_options_base["omit"]   + self._flex_options_rep_only["omit"],
         }
 
     def get_maximum_expansion_depth(self) -> Optional[int]:
@@ -81,6 +78,7 @@ class FlexFieldsSerializerMixin(object):
         if not self._flex_fields_rep_applied:
             self.apply_flex_fields(self.fields, self._flex_options_rep_only)
             self._flex_fields_rep_applied = True
+
         return super().to_representation(instance)
 
     def get_fields(self):
@@ -94,12 +92,12 @@ class FlexFieldsSerializerMixin(object):
         omit_fields, next_omit_fields = split_levels(flex_options["omit"])
 
         for field_name in self._get_fields_names_to_remove(
-            fields, omit_fields, sparse_fields, next_omit_fields
+            list(fields.keys()), omit_fields, sparse_fields, list(next_omit_fields.keys())
         ):
             fields.pop(field_name)
 
         for name in self._get_expanded_field_names(
-            expand_fields, omit_fields, sparse_fields, next_omit_fields
+            expand_fields, omit_fields, sparse_fields, list(next_omit_fields.keys())
         ):
             self.expanded_fields.append(name)
 
@@ -124,7 +122,7 @@ class FlexFieldsSerializerMixin(object):
             serializer_class = field_options
             settings = {}
 
-        if type(serializer_class) == str:
+        if isinstance(serializer_class, str):
             serializer_class = self._get_serializer_class_from_lazy_string(
                 serializer_class
             )
@@ -146,7 +144,7 @@ class FlexFieldsSerializerMixin(object):
 
         return serializer_class(**settings)
 
-    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str):
+    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[serializers.Serializer]:
         path_parts = full_lazy_path.split(".")
         class_name = path_parts.pop()
         path = ".".join(path_parts)
@@ -162,22 +160,25 @@ class FlexFieldsSerializerMixin(object):
 
         raise Exception(error)
 
-    def _import_serializer_class(
-        self, path: str, class_name: str
-    ) -> Tuple[Optional[str], Optional[str]]:
+    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[serializers.Serializer]], Optional[str]]:
         try:
             module = importlib.import_module(path)
         except ImportError:
-            return (
-                None,
-                "No module found at path: %s when trying to import %s"
-                % (path, class_name),
-            )
+            return None, f"No module found at path: {path} when trying to import {class_name}"
 
         try:
-            return getattr(module, class_name), None
+            resolved = getattr(module, class_name)
         except AttributeError:
-            return None, "No class %s class found in module %s" % (path, class_name)
+            return None, f"No class {class_name} class found in module {path}"
+
+        # Validate that the resolved attribute is actually a serializer class
+        if not isinstance(resolved, type):
+            return None, f"Attribute {class_name} in module {path} is not a class"
+
+        if not issubclass(resolved, serializers.Serializer):
+            return None, f"Class {class_name} in module {path} is not a Serializer subclass"
+
+        return resolved, None
 
     def _get_fields_names_to_remove(
         self,
@@ -214,10 +215,8 @@ class FlexFieldsSerializerMixin(object):
         next_level_omits: List[str],
     ) -> bool:
         """
-        Next level omits take form of:
-        {
-            'this_level_field': [field_to_omit_at_next_level]
-        }
+        `next_level_omits` is a list of field names that have omit rules
+        applied at a deeper nesting level.
         We don't want to prematurely omit a field, eg "omit=house.rooms.kitchen"
         should not omit the entire house or all the rooms, just the kitchen.
         """
@@ -241,7 +240,7 @@ class FlexFieldsSerializerMixin(object):
             return []
 
         if self._contains_wildcard_value(expand_fields):
-            expand_fields = self._expandable_fields.keys()
+            expand_fields = list(self._expandable_fields.keys())
 
         accum = []
 
@@ -263,8 +262,10 @@ class FlexFieldsSerializerMixin(object):
         """It's more consistent with DRF to declare the expandable fields
         on the Meta class, however we need to support both places
         for legacy reasons."""
-        if hasattr(self, "Meta") and hasattr(self.Meta, "expandable_fields"):
-            return self.Meta.expandable_fields
+        meta = getattr(self, "Meta", None)
+
+        if meta is not None and hasattr(meta, "expandable_fields"):
+            return meta.expandable_fields
 
         return self.expandable_fields
 
