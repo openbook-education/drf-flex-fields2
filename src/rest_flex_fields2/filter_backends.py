@@ -69,8 +69,10 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
         except FieldDoesNotExist:
             return None
 
-    @staticmethod
-    def _get_expandable_fields(serializer_class: Any) -> list:
+    @classmethod
+    def _get_expandable_fields(
+        cls, serializer_class: Any, parents: list = [], prefix: str = ""
+    ) -> list:
         """
         Return a flat list of all expandable field paths for `serializer_class`.
 
@@ -78,7 +80,12 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
         and builds dot-separated paths (e.g. ``['author', 'author.profile']``).
         Lazy string serializer paths are resolved before traversal.
         """
+        if serializer_class in parents:
+            # Break endless recursion
+            return []
+
         meta = getattr(serializer_class, "Meta", None)
+
         if meta is not None and hasattr(meta, "expandable_fields"):
             expandable_fields_dict = meta.expandable_fields
         elif hasattr(serializer_class, "expandable_fields"):
@@ -102,19 +109,13 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
                     nested_serializer_class
                 )
 
-            expand_list.append(key)
+            expand_list.append(f"{prefix}{key}")
 
-            meta = getattr(nested_serializer_class, "Meta", None)
-            if (
-                meta
-                and isinstance(nested_serializer_class, type)
-                and issubclass(nested_serializer_class, FlexFieldsSerializerMixin)
-                and hasattr(meta, "expandable_fields")
-            ):
-                next_layer = getattr(meta, "expandable_fields")
-                expandable_fields.extend(
-                    [(f"{key}.{next_key}", next_value) for next_key, next_value in list(next_layer.items())]
-                )
+            expand_list += cls._get_expandable_fields(
+                serializer_class = nested_serializer_class,
+                parents          = parents + [serializer_class],
+                prefix           = f"{prefix}{key}.",
+            )
 
         return expand_list
 
@@ -157,6 +158,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return None
 
         serializer_class = getattr(module, class_name, None)
+
         if isinstance(serializer_class, type) and issubclass(serializer_class, serializers.Serializer):
             return serializer_class
 
@@ -170,8 +172,13 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
         Reads ``Meta.fields`` and joins the values so they can be used as
         an example value in the generated schema parameter.
         """
-        fields = getattr(serializer_class.Meta, "fields", [])
-        return ",".join(fields)
+        meta = getattr(serializer_class, "Meta", None)
+
+        if meta is not None and hasattr(meta, "fields"):
+            fields = getattr(serializer_class.Meta, "fields", [])
+            return ",".join(fields)
+        else:
+            return ""
 
     def get_schema_operation_parameters(self, view):
         """
@@ -182,6 +189,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
         Returns an empty list for views that do not use flex fields.
         """
         serializer_class = view.get_serializer_class()
+
         if not issubclass(serializer_class, FlexFieldsSerializerMixin):
             return []
 
