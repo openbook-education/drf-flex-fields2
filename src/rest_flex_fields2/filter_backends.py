@@ -14,15 +14,17 @@ Provides two backends:
 
 from functools import lru_cache
 import importlib
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 from django.core.exceptions import FieldDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
 from rest_framework import serializers
 from rest_framework.filters import BaseFilterBackend
-from rest_framework.viewsets import GenericViewSet
-from rest_framework.request import Request
+
+if TYPE_CHECKING:
+    from rest_framework.viewsets import GenericViewSet
+    from rest_framework.request import Request
 
 from .config import (
     EXPAND_PARAM,
@@ -251,7 +253,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
       included in the ``only()`` call.
     """
     def filter_queryset(
-        self, request: Request, queryset: QuerySet, view: GenericViewSet
+        self, request: "Request", queryset: "QuerySet", view: "GenericViewSet"
     ):
         """
         Apply field-selection and relation-prefetch optimisations to `queryset`.

@@ -7,7 +7,7 @@ and the ready-to-use `FlexFieldsModelViewSet` that combines the mixin with
 """
 
 from typing import Any
-from rest_framework import viewsets
+from rest_framework.viewsets import ModelViewSet
 
 
 class FlexFieldsMixin:
@@ -38,7 +38,7 @@ class FlexFieldsMixin:
         return default_context
 
 
-class FlexFieldsModelViewSet(FlexFieldsMixin, viewsets.ModelViewSet):
+class FlexFieldsModelViewSet(FlexFieldsMixin, ModelViewSet):
     """
     Convenience view set combining `FlexFieldsMixin` with ``ModelViewSet``.
 

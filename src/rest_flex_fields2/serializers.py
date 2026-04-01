@@ -11,7 +11,7 @@ import copy
 import importlib
 from typing import List, Optional, Tuple, Type
 
-from rest_framework import serializers
+from rest_framework.serializers import (Serializer, ModelSerializer)
 
 from .config import (
     EXPAND_PARAM,
@@ -24,7 +24,7 @@ from .config import (
 from .utils import split_levels
 
 
-class FlexFieldsSerializerMixin(serializers.Serializer):
+class FlexFieldsSerializerMixin(Serializer):
     """
     Mixin that adds sparse-fieldset and nested-expansion support to a serializer.
 
@@ -165,7 +165,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
                 serializer_class
             )
 
-        if issubclass(serializer_class, serializers.Serializer):
+        if issubclass(serializer_class, Serializer):
             settings["context"] = self.context
 
         if issubclass(serializer_class, FlexFieldsSerializerMixin):
@@ -182,7 +182,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
 
         return serializer_class(**settings)
 
-    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[serializers.Serializer]:
+    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[Serializer]:
         """
         Resolve a dotted string path to a serializer class.
 
@@ -205,14 +205,14 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
 
         raise Exception(error)
 
-    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[serializers.Serializer]], Optional[str]]:
+    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[Serializer]], Optional[str]]:
         """
         Import `class_name` from the module at `path`.
 
         Returns a ``(serializer_class, None)`` tuple on success, or
         ``(None, error_message)`` when the module cannot be imported, the
         attribute does not exist, or the attribute is not a
-        ``serializers.Serializer`` subclass.
+        ``Serializer`` subclass.
         """
         try:
             module = importlib.import_module(path)
@@ -228,7 +228,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         if not isinstance(resolved, type):
             return None, f"Attribute {class_name} in module {path} is not a class"
 
-        if not issubclass(resolved, serializers.Serializer):
+        if not issubclass(resolved, Serializer):
             return None, f"Class {class_name} in module {path} is not a Serializer subclass"
 
         return resolved, None
@@ -463,7 +463,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return len(intersecting_values) > 0
 
 
-class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
+class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, ModelSerializer):
     """
     Convenience serializer combining `FlexFieldsSerializerMixin` with ``ModelSerializer``.
 
