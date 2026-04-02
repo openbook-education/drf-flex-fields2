@@ -2,7 +2,7 @@
 
 from http import HTTPStatus
 from types import SimpleNamespace
-from typing import cast
+from typing import ClassVar, cast
 from unittest.mock import patch
 
 from django.contrib.contenttypes.models import ContentType
@@ -19,6 +19,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
 from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 from rest_flex_fields2.filter_backends import FlexFieldsDocsFilterBackend
+from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
 from tests.testapp.serializers import PetStoreSerializer
 from tests.testapp.views import PetViewSet
@@ -426,7 +427,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
         class TupleExpandableSerializer:
             class Meta:
-                expandable_fields = {
+                expandable_fields: ClassVar[dict[str, object]] = {
                     "owner": ("tests.testapp.PersonSerializer", {"read_only": True}),
                 }
 
@@ -434,6 +435,121 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
         self.assertIn("owner", expanded)
         self.assertIn("owner.employer", expanded)
+
+    def test_get_expandable_fields_stops_on_cyclic_serializer_expands(self):
+        """Cyclic expandable-field graphs produce a finite flattened path list."""
+
+        class CyclicRootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["child"]
+                expandable_fields: ClassVar[dict[str, object]]
+
+        class CyclicChildSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {
+                "parent": CyclicRootSerializer,
+            }
+
+            class Meta:
+                fields = ["parent"]
+
+        CyclicRootSerializer.Meta.expandable_fields = {
+            "child": CyclicChildSerializer,
+        }
+
+        expanded = self.backend._get_expandable_fields(CyclicRootSerializer)
+
+        self.assertEqual(expanded, ["child", "child.parent"])
+
+    def test_get_expandable_fields_uses_class_level_fallback_recursively(self):
+        """Nested serializers can declare ``expandable_fields`` on the class itself."""
+
+        class LeafSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["value"]
+
+        class NestedSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {"leaf": LeafSerializer}
+
+            class Meta:
+                fields = ["leaf"]
+
+        class RootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["nested"]
+                expandable_fields: ClassVar[dict[str, object]] = {
+                    "nested": NestedSerializer,
+                }
+
+        expanded = self.backend._get_expandable_fields(RootSerializer)
+
+        self.assertEqual(expanded, ["nested", "nested.leaf"])
+
+    def test_get_schema_operation_parameters_include_nested_class_level_expands(self):
+        """Schema enum generation honors class-level expandable declarations on nested serializers."""
+
+        class LeafSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["value"]
+
+        class NestedSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {"leaf": LeafSerializer}
+
+            class Meta:
+                fields = ["leaf"]
+
+        class RootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["nested"]
+                expandable_fields: ClassVar[dict[str, object]] = {
+                    "nested": NestedSerializer,
+                }
+
+        class RootViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return RootSerializer
+
+        parameters = self.backend.get_schema_operation_parameters(RootViewSet())
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+
+        self.assertIn("nested", expand_enum)
+        self.assertIn("nested.leaf", expand_enum)
+
+    def test_get_schema_operation_parameters_limit_cyclic_expand_paths(self):
+        """Schema enum generation remains finite when expandable fields reference a cycle."""
+
+        class CyclicRootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["child"]
+                expandable_fields: ClassVar[dict[str, object]]
+
+        class CyclicChildSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {
+                "parent": CyclicRootSerializer,
+            }
+
+            class Meta:
+                fields = ["parent"]
+
+        CyclicRootSerializer.Meta.expandable_fields = {
+            "child": CyclicChildSerializer,
+        }
+
+        class RootViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return CyclicRootSerializer
+
+        parameters = self.backend.get_schema_operation_parameters(RootViewSet())
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+
+        self.assertEqual(expand_enum[:2], ["child", "child.parent"])
+        self.assertEqual(expand_enum.count("child"), 1)
+        self.assertEqual(expand_enum.count("child.parent"), 1)
 
     def test_get_serializer_class_from_lazy_string_raises_for_invalid_path(self):
         """Invalid lazy serializer paths raise an exception in schema helper logic."""
