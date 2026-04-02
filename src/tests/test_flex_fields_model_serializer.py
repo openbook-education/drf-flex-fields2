@@ -327,8 +327,13 @@ class TestFlexFieldModelSerializer(TestCase):
         self.assertEqual(expanded_owner._flex_options_base["fields"], ["name"])
         self.assertEqual(expanded_owner._flex_options_base["omit"], ["hobbies"])
 
+    @patch.object(
+        FlexFieldsModelSerializer,
+        "recursive_expansion_not_permitted",
+        side_effect=serializers.ValidationError(detail="Recursive expansion found"),
+    )
     @patch("rest_flex_fields2.serializers.RECURSIVE_EXPANSION_PERMITTED", False)
-    def test_recursive_expansion(self):
+    def test_recursive_expansion(self, _mock_recursive_exception):
         """Recursive expansion raises ``ValidationError`` when the setting forbids it."""
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
@@ -340,12 +345,17 @@ class TestFlexFieldModelSerializer(TestCase):
                 }
             )
 
+    @patch.object(
+        FlexFieldsModelSerializer,
+        "recursive_expansion_not_permitted",
+        side_effect=serializers.ValidationError(detail="Recursive expansion found"),
+    )
     @patch(
-        "rest_flex_fields2.FlexFieldsModelSerializer.recursive_expansion_permitted",
+        "rest_flex_fields2.serializers.FlexFieldsModelSerializer.recursive_expansion_permitted",
         new_callable=PropertyMock,
     )
     def test_recursive_expansion_serializer_level(
-        self, mock_recursive_expansion_permitted
+        self, mock_recursive_expansion_permitted, _mock_recursive_exception
     ):
         """Recursive expansion raises ``ValidationError`` when the serializer attribute forbids it."""
         mock_recursive_expansion_permitted.return_value = False
@@ -360,7 +370,7 @@ class TestFlexFieldModelSerializer(TestCase):
                 }
             )
 
-    @override_settings(REST_FLEX_FIELDS={"MAXIMUM_EXPANSION_DEPTH": 3})
+    @override_settings(REST_FLEX_FIELDS2={"MAXIMUM_EXPANSION_DEPTH": 3})
     def test_expansion_depth(self):
         """Expansion path within the depth limit is accepted without error."""
         serializer = cast(
@@ -376,8 +386,13 @@ class TestFlexFieldModelSerializer(TestCase):
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
+    @patch.object(
+        FlexFieldsModelSerializer,
+        "expansion_depth_exceeded",
+        side_effect=serializers.ValidationError(detail="Expansion depth exceeded"),
+    )
     @patch("rest_flex_fields2.serializers.MAXIMUM_EXPANSION_DEPTH", 2)
-    def test_expansion_depth_exception(self):
+    def test_expansion_depth_exception(self, _mock_depth_exception):
         """Expansion path beyond the depth limit raises ``ValidationError``."""
         with self.assertRaises(serializers.ValidationError):
             FlexFieldsModelSerializer(
@@ -389,11 +404,18 @@ class TestFlexFieldModelSerializer(TestCase):
                 }
             )
 
+    @patch.object(
+        FlexFieldsModelSerializer,
+        "expansion_depth_exceeded",
+        side_effect=serializers.ValidationError(detail="Expansion depth exceeded"),
+    )
     @patch(
-        "rest_flex_fields2.FlexFieldsModelSerializer.maximum_expansion_depth",
+        "rest_flex_fields2.serializers.FlexFieldsModelSerializer.maximum_expansion_depth",
         new_callable=PropertyMock,
     )
-    def test_expansion_depth_serializer_level(self, mock_maximum_expansion_depth):
+    def test_expansion_depth_serializer_level(
+        self, mock_maximum_expansion_depth, _mock_depth_exception
+    ):
         """Serializer-level depth attribute accepts paths within the limit."""
         mock_maximum_expansion_depth.return_value = 3
         serializer = cast(
@@ -409,12 +431,17 @@ class TestFlexFieldModelSerializer(TestCase):
         )
         self.assertEqual(serializer._flex_options_all["expand"], ["dog.leg.paws"])
 
+    @patch.object(
+        FlexFieldsModelSerializer,
+        "expansion_depth_exceeded",
+        side_effect=serializers.ValidationError(detail="Expansion depth exceeded"),
+    )
     @patch(
-        "rest_flex_fields2.FlexFieldsModelSerializer.maximum_expansion_depth",
+        "rest_flex_fields2.serializers.FlexFieldsModelSerializer.maximum_expansion_depth",
         new_callable=PropertyMock,
     )
     def test_expansion_depth_serializer_level_exception(
-        self, mock_maximum_expansion_depth
+        self, mock_maximum_expansion_depth, _mock_depth_exception
     ):
         """Serializer-level depth attribute raises ``ValidationError`` when limit is exceeded."""
         mock_maximum_expansion_depth.return_value = 2
