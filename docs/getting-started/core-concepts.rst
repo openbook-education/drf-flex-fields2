@@ -43,7 +43,7 @@ Examples:
 - ``expand=*`` expands all expandable fields at the current level.
 - ``fields=*`` includes all serializer fields.
 
-These values are configurable through ``REST_FLEX_FIELDS``.
+These values are configurable through ``REST_FLEX_FIELDS2``.
 
 Example Requests
 ----------------

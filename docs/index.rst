@@ -63,8 +63,8 @@ Supported stack
    :maxdepth: 1
    :caption: Maintainers
 
-   maintainers/maintainer-local-development
-   maintainers/maintainer-development-process
-   maintainers/maintainer-architecture
+   maintainers/local-development
+   maintainers/development-process
+   maintainers/architecture
    maintainers/repository-setup
    maintainers/versioning-and-releases

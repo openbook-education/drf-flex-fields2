@@ -42,12 +42,12 @@ practical integration pattern.
 Optional Django settings
 ------------------------
 
-Runtime behavior can be customized with the ``REST_FLEX_FIELDS`` setting
+Runtime behavior can be customized with the ``REST_FLEX_FIELDS2`` setting
 (see also :doc:`/reference/api-reference` for configuration constants):
 
 .. code-block:: python
 
-   REST_FLEX_FIELDS = {
+   REST_FLEX_FIELDS2 = {
        "EXPAND_PARAM": "expand",
        "FIELDS_PARAM": "fields",
        "OMIT_PARAM": "omit",

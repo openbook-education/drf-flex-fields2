@@ -5,7 +5,7 @@ Customization
 -------------
 
 Parameter names and wildcard values can be configured with the Django setting
-``REST_FLEX_FIELDS``. For the corresponding constants exposed by the package,
+``REST_FLEX_FIELDS2``. For the corresponding constants exposed by the package,
 see :doc:`/reference/api-reference`.
 
 .. list-table::
@@ -39,9 +39,16 @@ Example:
 
 .. code-block:: python
 
-   REST_FLEX_FIELDS = {
+   REST_FLEX_FIELDS2 = {
        "EXPAND_PARAM": "include",
    }
+
+::warning
+
+    Avoid direct import of the ``rest_flex_fields2`` package in the Django settings.
+    Otherwise the configuration will not be picked up, because the variable does not
+    necesarilly exist at the time of the import. Always reference package contents
+    like class names as strings, instead of importing them.
 
 Defining Limits on Serializer Classes
 -------------------------------------
