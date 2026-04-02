@@ -9,7 +9,7 @@ from django.test import override_settings
 from django.utils.datastructures import MultiValueDict
 from rest_framework import serializers
 
-from rest_flex_fields2 import FlexFieldsModelSerializer
+from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 from tests.testapp.models import Pet
 from tests.testapp.serializers import PersonSerializer, PetSerializer
 

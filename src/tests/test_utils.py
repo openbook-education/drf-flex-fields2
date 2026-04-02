@@ -2,8 +2,8 @@
 
 from django.test import TestCase
 
-from rest_flex_fields2 import is_included, is_expanded, WILDCARD_ALL, WILDCARD_ASTERISK
-from rest_flex_fields2.utils import split_levels
+from rest_flex_fields2.config import WILDCARD_ALL, WILDCARD_ASTERISK
+from rest_flex_fields2.utils import is_expanded, is_included, split_levels
 
 
 class MockRequest:

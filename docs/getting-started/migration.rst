@@ -39,7 +39,12 @@ Update Imports
 ^^^^^^^^^^^^^^
 
 Replace all imports of ``rest_flex_fields`` with ``rest_flex_fields2`` throughout
-your codebase. This is the only code change required.
+your codebase.
+
+If you imported symbols from the package root (for example,
+``from rest_flex_fields2 import FlexFieldsModelSerializer``), update those to
+module-level imports instead. Package-level re-exports were removed to
+fix import cycles during Django initialization.
 
 **Before:**
 
@@ -48,11 +53,11 @@ your codebase. This is the only code change required.
    from rest_flex_fields import FlexFieldsModelSerializer
 
 
-**After:**
+**After (module-level import):**
 
 .. code-block:: python
 
-   from rest_flex_fields2 import FlexFieldsModelSerializer
+   from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 Update Django Settings
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -94,6 +99,8 @@ Troubleshooting
 **Import errors after migration?**
 
 - Ensure you've updated all imports from ``rest_flex_fields`` to ``rest_flex_fields2``
+- Replace package-level imports with module-level imports (for example,
+  ``from rest_flex_fields2.serializers import FlexFieldsModelSerializer``)
 - Run ``grep -rP "rest_flex_fields(?!2)" .`` to find any remaining old imports
 - Check virtualenv/venv activation: ``pip list | grep drf-flex-fields``
 
