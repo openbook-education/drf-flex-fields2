@@ -2,7 +2,7 @@
 
 Provides `FlexFieldsMixin` for controlling per-action expansion permissions
 and the ready-to-use `FlexFieldsModelViewSet` that combines the mixin with
-``viewsets.ModelViewSet``.
+``ModelViewSet`` from Django REST Framework.
 """
 
 from typing import Any

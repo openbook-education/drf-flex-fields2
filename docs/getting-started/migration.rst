@@ -4,19 +4,6 @@ Migration from drf-flex-fields
 If you are currently using the original ``drf-flex-fields`` package, migrating to
 ``drf-flex-fields2`` is straightforward and requires minimal changes to your codebase.
 
-Prerequisites
-^^^^^^^^^^^^^
-
-Before migrating, ensure your project meets the following requirements:
-
-- **Django 6.0** or newer
-- **Django REST Framework 3.17.0** or newer
-
-If your project is still on older versions of Django or DRF, you will need to
-upgrade them first. The original ``drf-flex-fields`` package should continue to
-work with older Django and DRF versions, but ``drf-flex-fields2`` requires the
-modern versions listed above.
-
 Installation
 ^^^^^^^^^^^^
 
