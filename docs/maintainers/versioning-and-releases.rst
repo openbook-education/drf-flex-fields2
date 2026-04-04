@@ -82,6 +82,16 @@ Release Checklist
    ``poetry config pypi-token.pypi <token>`` once to store it, or set the
    ``POETRY_PYPI_TOKEN_PYPI`` environment variable.
 
+   For the PyPi test environment run:
+
+
+   .. code-block:: bash
+
+      poetry publish -r testpypi
+
+   The API token must be set with ``poetry config pypi-token.testpypi <token>`` or
+   ``POETRY_PYPI_TOKEN_TESTPYPI``, instead.
+
 8. **Verify the release** on PyPI and confirm the package installs cleanly:
 
    .. code-block:: bash

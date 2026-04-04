@@ -83,7 +83,7 @@ project, that risk is considered acceptable.
 Manual Maintenance
 ------------------
 
-When a new Python version or a new major Django version is released, maintainers
+When a new major Python version or a new major Django version is released, maintainers
 must manually update the Trove classifiers in ``pyproject.toml``.
 
 Renovate can update dependency constraints, but it will not infer or adjust the
