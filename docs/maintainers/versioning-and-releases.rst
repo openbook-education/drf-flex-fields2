@@ -109,7 +109,7 @@ Release Checklist
    ``poetry config pypi-token.pypi <token>`` once to store it, or set the
    ``POETRY_PYPI_TOKEN_PYPI`` environment variable.
 
-   For the PyPi test environment run:
+   For the PyPI test environment run:
 
    .. code-block:: bash
 
