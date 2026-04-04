@@ -43,11 +43,11 @@ Example:
        "EXPAND_PARAM": "include",
    }
 
-::warning
+.. warning::
 
     Avoid direct import of the ``rest_flex_fields2`` package in the Django settings.
     Otherwise the configuration will not be picked up, because the variable does not
-    necesarilly exist at the time of the import. Always reference package contents
+    necessarily exist at the time of the import. Always reference package contents
     like class names as strings, instead of importing them.
 
 Defining Limits on Serializer Classes
