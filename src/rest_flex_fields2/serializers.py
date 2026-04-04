@@ -27,7 +27,7 @@ class FlexFieldsSerializerMixin(Serializer):
     """Mixin that adds sparse-fieldset and nested-expansion support to a serializer.
 
     Accepts the ``fields``, ``omit``, and ``expand`` keyword arguments (names
-    are configurable via ``REST_FLEX_FIELDS`` settings) both as constructor
+    are configurable via ``REST_FLEX_FIELDS2`` settings) both as constructor
     kwargs and as query-string parameters on the current request.  Query
     parameters are only read on the root serializer; nested serializers
     receive their options through constructor kwargs propagated by the parent.

@@ -27,7 +27,7 @@ in the documentation for detailed instructions. The short version is:
 1. Upgrade Django and DRF dependencies, if not done already.
 2. Install `drf-flex-fields2` instead of `drf-flex-fields`.
 3. Fix package name in import paths: `rest_flex_fields2` instead of `rest_flex_fields`
-4. Change package-level imports to deep imports: `from rest_flex_fields2.abc import xyz`
+4. Change package-level imports to deep imports, e.g.: `from rest_flex_fields2.serializers import FlexFieldsModelSerializer`
 5. Rename `REST_FLEX_FIELDS` to `REST_FLEX_FIELDS2` in Django settings.
 
 The `drf-flex-fields2` API is stable and compatible with the original `drf-flex-fields`

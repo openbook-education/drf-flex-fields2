@@ -181,8 +181,8 @@ cause expensive relation loading for large result sets.
 
 .. code-block:: python
 
-    from rest_flex_fields2.utils import is_expanded
-    from rest_flex_fields2.views import FlexFieldsModelViewSet
+   from rest_flex_fields2.utils import is_expanded
+   from rest_flex_fields2.views import FlexFieldsModelViewSet
 
 
    class PersonViewSet(FlexFieldsModelViewSet):
@@ -260,7 +260,7 @@ If your project already has a custom serializer base class, use
 
    from rest_framework import serializers
 
-    from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
+   from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
 
 
    class BaseAPISerializer(serializers.ModelSerializer):
@@ -284,7 +284,7 @@ instances, which helps avoid maintaining multiple slightly different serializers
 
 .. code-block:: python
 
-    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
+   from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
    class CountrySerializer(FlexFieldsModelSerializer):
