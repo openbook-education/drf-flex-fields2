@@ -1,4 +1,4 @@
-""" DRF filter backends for flex-fields.
+"""DRF filter backends for flex-fields.
 
 Provides two backends:
 
@@ -39,7 +39,7 @@ WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES or [])
 
 
 class FlexFieldsDocsFilterBackend(BaseFilterBackend):
-    """ No-op filter backend that adds flex-fields parameters to the API schema.
+    """No-op filter backend that adds flex-fields parameters to the API schema.
 
     Does not modify the queryset.  Its sole purpose is to expose the
     ``fields``, ``omit``, and ``expand`` query parameters in the OpenAPI
@@ -54,7 +54,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     @staticmethod
     @lru_cache()
     def _get_model_field(field_name: str, model: models.Model) -> Optional[models.Field]:
-        """ Return the Django model field for `field_name`, or ``None``.
+        """Return the Django model field for `field_name`, or ``None``.
 
         Result is cached per ``(field_name, model)`` pair via ``lru_cache``.
         Returns ``None`` when the field does not exist on the model (e.g. for
@@ -70,7 +70,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     def _get_expandable_fields(
         cls, serializer_class: Any, parents: tuple = (), prefix: str = ""
     ) -> list:
-        """ Return a flat list of all expandable field paths for `serializer_class`.
+        """Return a flat list of all expandable field paths for `serializer_class`.
 
         Traverses nested `FlexFieldsSerializerMixin` subclasses recursively
         and builds dot-separated paths (e.g. ``['author', 'author.profile']``).
@@ -117,14 +117,14 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _get_serializer_class_from_lazy_string(full_lazy_path: str):
-        """ Resolve a dotted string path to a serializer class.
+        """Resolve a dotted string path to a serializer class.
 
         Tries the exact path first; if that fails and the path does not
         already end in ``.serializers``, appends ``.serializers`` and retries.
         Raises ``Exception`` when the class cannot be found.
         """
         def _import_serializer_class(path: str, class_name: str):
-            """ Import `class_name` from the module at `path`."""
+            """Import `class_name` from the module at `path`."""
             try:
                 module = importlib.import_module(path)
             except ImportError:
@@ -154,7 +154,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _get_serializer_fields(serializer_class):
-        """ Return a comma-joined string of the field names declared on `serializer_class`.
+        """Return a comma-joined string of the field names declared on `serializer_class`.
 
         Reads ``Meta.fields`` and joins the values so they can be used as
         an example value in the generated schema parameter.
@@ -168,7 +168,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return ""
 
     def get_schema_operation_parameters(self, view):
-        """ Return the OpenAPI query parameter definitions for the flex-fields params.
+        """Return the OpenAPI query parameter definitions for the flex-fields params.
 
         Emits ``fields``, ``omit``, and ``expand`` parameter objects for the
         view's serializer when it is a `FlexFieldsSerializerMixin` subclass.
@@ -228,7 +228,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
 
 class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
-    """ Filter backend that optimises querysets based on the active flex-fields options.
+    """Filter backend that optimises querysets based on the active flex-fields options.
 
     Extends `FlexFieldsDocsFilterBackend` with actual queryset manipulation:
     applies ``only()`` to restrict fetched columns and ``select_related()`` and
@@ -244,7 +244,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
     def filter_queryset(
         self, request: "Request", queryset: "QuerySet", view: "GenericViewSet"
     ):
-        """ Apply field-selection and relation-prefetch optimisations to `queryset`.
+        """Apply field-selection and relation-prefetch optimisations to `queryset`.
 
         Resolves the active ``fields`` / ``omit`` / ``expand`` options from
         the request, then calls ``only()``, ``select_related()``, and
