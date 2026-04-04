@@ -8,7 +8,7 @@ build:
         post_create_environment:
             - pip install poetry
             - poetry config virtualenvs.create false
-        post_install:
+        install:
             - poetry install --no-interaction --with docs
 
 sphinx:
