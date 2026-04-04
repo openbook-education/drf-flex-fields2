@@ -565,6 +565,24 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
         self.assertEqual(self.backend._get_serializer_fields(SerializerWithoutFields), "")
 
+    def test_get_fields_returns_empty_string_for_meta_fields_all(self):
+        """Schema field helper returns empty string for ``Meta.fields = "__all__"``."""
+
+        class SerializerWithAllFields:
+            class Meta:
+                fields = "__all__"
+
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithAllFields), "")
+
+    def test_get_fields_ignores_non_string_values_in_iterable_fields(self):
+        """Only string entries from iterable ``Meta.fields`` are joined for schema examples."""
+
+        class SerializerWithMixedFields:
+            class Meta:
+                fields = ["name", 1, None, "owner"]
+
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithMixedFields), "name,owner")
+
 
 class FlexFieldsFilterBackendOptionTests(TestCase):
     """Unit tests for ``FlexFieldsFilterBackend`` view option branches."""

@@ -156,14 +156,23 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     def _get_serializer_fields(serializer_class):
         """Return a comma-joined string of the field names declared on `serializer_class`.
 
-        Reads ``Meta.fields`` and joins the values so they can be used as
-        an example value in the generated schema parameter.
+        Reads ``Meta.fields`` and converts it into an example-friendly string
+        for schema generation. Returns an empty string for ``"__all__"`` or
+        unsupported field declarations.
         """
         meta = getattr(serializer_class, "Meta", None)
 
         if meta is not None and hasattr(meta, "fields"):
             fields = getattr(serializer_class.Meta, "fields", [])
-            return ",".join(fields)
+
+            if isinstance(fields, str):
+                return "" if fields == "__all__" else fields
+
+            if isinstance(fields, (list, tuple)):
+                serializer_fields = [field_name for field_name in fields if isinstance(field_name, str)]
+                return ",".join(serializer_fields)
+
+            return ""
         else:
             return ""
 
