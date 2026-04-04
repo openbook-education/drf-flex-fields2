@@ -26,13 +26,6 @@ What this package gives you
 - Keep list endpoints under control with per-view expansion limits.
 - Optionally optimize querysets with a dedicated filter backend.
 
-Supported stack
-^^^^^^^^^^^^^^^
-
-- Python 3.12 and 3.13
-- Django 6.x
-- Django REST Framework 3.17+
-
 
 .. toctree::
    :maxdepth: 1

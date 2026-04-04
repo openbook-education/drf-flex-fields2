@@ -11,29 +11,29 @@ Install the package from PyPI:
 
 .. code-block:: bash
 
-   pip install drf-flex-fields2
+    pip install drf-flex-fields2
 
 Then subclass ``FlexFieldsModelSerializer`` in place of DRF's regular
 ``ModelSerializer``:
 
 .. code-block:: python
 
-   from rest_flex_fields2.serializers import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class StateSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = State
-           fields = ("id", "name")
+    class StateSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = State
+            fields = ("id", "name")
 
 
-   class CountrySerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Country
-           fields = ("id", "name", "population", "states")
-           expandable_fields = {
-               "states": (StateSerializer, {"many": True}),
-           }
+    class CountrySerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Country
+            fields = ("id", "name", "population", "states")
+            expandable_fields = {
+                "states": (StateSerializer, {"many": True}),
+            }
 
 If you already have a custom serializer base class, you can instead mix in
 ``FlexFieldsSerializerMixin``. See :ref:`using-the-serializer-mixin` for a
@@ -47,11 +47,11 @@ Runtime behavior can be customized with the ``REST_FLEX_FIELDS2`` setting
 
 .. code-block:: python
 
-   REST_FLEX_FIELDS2 = {
-       "EXPAND_PARAM": "expand",
-       "FIELDS_PARAM": "fields",
-       "OMIT_PARAM": "omit",
-   }
+    REST_FLEX_FIELDS2 = {
+        "EXPAND_PARAM": "expand",
+        "FIELDS_PARAM": "fields",
+        "OMIT_PARAM": "omit",
+    }
 
 The full list of supported settings is documented in :doc:`/guide/advanced`.
 

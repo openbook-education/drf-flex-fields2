@@ -16,46 +16,49 @@ serializer keyword arguments. Related option combinations are documented in
 
 .. code-block:: python
 
-   class CountrySerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Country
-           fields = ["name", "population"]
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class PersonSerializer(FlexFieldsModelSerializer):
-       country = serializers.PrimaryKeyRelatedField(read_only=True)
+    class CountrySerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Country
+            fields = ["name", "population"]
 
-       class Meta:
-           model = Person
-           fields = ["id", "name", "country", "occupation"]
-           expandable_fields = {
-               "country": CountrySerializer,
-           }
+
+    class PersonSerializer(FlexFieldsModelSerializer):
+        country = serializers.PrimaryKeyRelatedField(read_only=True)
+
+        class Meta:
+            model = Person
+            fields = ["id", "name", "country", "occupation"]
+            expandable_fields = {
+                "country": CountrySerializer,
+            }
 
 Default response:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": 12,
-       "occupation": "Programmer"
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "country": 12,
+        "occupation": "Programmer"
+    }
 
 Expanded response for ``GET /person/13322?expand=country``:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States",
-           "population": 330000000
-       },
-       "occupation": "Programmer"
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "country": {
+            "name": "United States",
+            "population": 330000000
+        },
+        "occupation": "Programmer"
+    }
 
 Deferred Fields
 ---------------
@@ -66,41 +69,44 @@ explicitly expanded.
 
 .. code-block:: python
 
-   class TeamSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Team
-           fields = ["id", "name"]
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class MemberSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Member
-           fields = ["id", "email"]
-           expandable_fields = {
-               "team": TeamSerializer,
-           }
+    class TeamSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Team
+            fields = ["id", "name"]
+
+
+    class MemberSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Member
+            fields = ["id", "email"]
+            expandable_fields = {
+                "team": TeamSerializer,
+            }
 
 Default response for ``GET /members/87/``:
 
 .. code-block:: json
 
-   {
-       "id": 87,
-       "email": "sam@example.com"
-   }
+    {
+        "id": 87,
+        "email": "sam@example.com"
+    }
 
 Expanded response for ``GET /members/87/?expand=team``:
 
 .. code-block:: json
 
-   {
-       "id": 87,
-       "email": "sam@example.com",
-       "team": {
-           "id": 11,
-           "name": "API Platform"
-       }
-   }
+    {
+        "id": 87,
+        "email": "sam@example.com",
+        "team": {
+            "id": 11,
+            "name": "API Platform"
+        }
+    }
 
 Deep Nested Expansion
 ---------------------
@@ -114,57 +120,60 @@ Nested expansions use dot notation:
 
 .. code-block:: python
 
-   class StateSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = State
-           fields = ["name", "population"]
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class CountrySerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Country
-           fields = ["name", "population"]
-           expandable_fields = {
-               # Expand states only when the client asks for them.
-               "states": (StateSerializer, {"many": True}),
-           }
+    class StateSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = State
+            fields = ["name", "population"]
 
 
-   class PersonSerializer(FlexFieldsModelSerializer):
-       country = serializers.PrimaryKeyRelatedField(read_only=True)
+    class CountrySerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Country
+            fields = ["name", "population"]
+            expandable_fields = {
+                # Expand states only when the client asks for them.
+                "states": (StateSerializer, {"many": True}),
+            }
 
-       class Meta:
-           model = Person
-           fields = ["id", "name", "country", "occupation"]
-           expandable_fields = {
-               "country": CountrySerializer,
-           }
+
+    class PersonSerializer(FlexFieldsModelSerializer):
+        country = serializers.PrimaryKeyRelatedField(read_only=True)
+
+        class Meta:
+            model = Person
+            fields = ["id", "name", "country", "occupation"]
+            expandable_fields = {
+                "country": CountrySerializer,
+            }
 
 Request:
 
 .. code-block:: text
 
-   GET /person/13322?expand=country.states
+    GET /person/13322?expand=country.states
 
 Response:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "occupation": "Programmer",
-       "country": {
-           "id": 12,
-           "name": "United States",
-           "states": [
-               {
-                   "name": "Ohio",
-                   "population": 11000000
-               }
-           ]
-       }
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "occupation": "Programmer",
+        "country": {
+            "id": 12,
+            "name": "United States",
+            "states": [
+                {
+                    "name": "Ohio",
+                    "population": 11000000
+                }
+            ]
+        }
+    }
 
 .. warning::
 
@@ -181,21 +190,21 @@ cause expensive relation loading for large result sets.
 
 .. code-block:: python
 
-   from rest_flex_fields2.utils import is_expanded
-   from rest_flex_fields2.views import FlexFieldsModelViewSet
+    from rest_flex_fields2.utils import is_expanded
+    from rest_flex_fields2.views import FlexFieldsModelViewSet
 
 
-   class PersonViewSet(FlexFieldsModelViewSet):
-       permit_list_expands = ["employer"]
-       serializer_class = PersonSerializer
+    class PersonViewSet(FlexFieldsModelViewSet):
+        permit_list_expands = ["employer"]
+        serializer_class = PersonSerializer
 
-       def get_queryset(self):
-           queryset = models.Person.objects.all()
+        def get_queryset(self):
+            queryset = models.Person.objects.all()
 
-           if is_expanded(self.request, "employer"):
-               queryset = queryset.select_related("employer")
+            if is_expanded(self.request, "employer"):
+                queryset = queryset.select_related("employer")
 
-           return queryset
+            return queryset
 
 ``permit_list_expands`` is applied only for the list action. The view passes
 the allowed values through ``context["permitted_expands"]`` so the serializer
@@ -210,13 +219,16 @@ multiple objects.
 
 .. code-block:: python
 
-   class CountrySerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Country
-           fields = ["name", "population"]
-           expandable_fields = {
-               "states": (StateSerializer, {"many": True}),
-           }
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
+
+
+    class CountrySerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Country
+            fields = ["name", "population"]
+            expandable_fields = {
+                "states": (StateSerializer, {"many": True}),
+            }
 
 Lazy Serializer References
 --------------------------
@@ -225,23 +237,26 @@ To avoid circular imports, reference a serializer lazily by dotted path:
 
 .. code-block:: python
 
-   class OwnerSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Owner
-           fields = ["id", "name"]
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class RecordSerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Record
-           fields = ["id", "title", "owner"]
-           expandable_fields = {
-               "owner": "accounts.api.serializers.UserSerializer",
-               "record_set": (
-                   "records.api.serializers.RelatedSerializer",
-                   {"many": True},
-               ),
-           }
+    class OwnerSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Owner
+            fields = ["id", "name"]
+
+
+    class RecordSerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Record
+            fields = ["id", "title", "owner"]
+            expandable_fields = {
+                "owner": "accounts.api.serializers.UserSerializer",
+                "record_set": (
+                    "records.api.serializers.RelatedSerializer",
+                    {"many": True},
+                ),
+            }
 
 Fully qualified import paths are supported. Legacy
 ``<app>.serializers.SerializerName`` paths still work as well.
@@ -258,23 +273,22 @@ If your project already has a custom serializer base class, use
 
 .. code-block:: python
 
-   from rest_framework import serializers
-
-   from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
-
-
-   class BaseAPISerializer(serializers.ModelSerializer):
-       class Meta:
-           abstract = True
+    from rest_framework import serializers
+    from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
 
 
-   class AccountSerializer(FlexFieldsSerializerMixin, BaseAPISerializer):
-       class Meta:
-           model = Account
-           fields = ["id", "name", "owner"]
-           expandable_fields = {
-               "owner": "accounts.api.serializers.UserSerializer",
-           }
+    class BaseAPISerializer(serializers.ModelSerializer):
+        class Meta:
+            abstract = True
+
+
+    class AccountSerializer(FlexFieldsSerializerMixin, BaseAPISerializer):
+        class Meta:
+            model = Account
+            fields = ["id", "name", "owner"]
+            expandable_fields = {
+                "owner": "accounts.api.serializers.UserSerializer",
+            }
 
 Serializer Reuse
 ----------------
@@ -284,19 +298,19 @@ instances, which helps avoid maintaining multiple slightly different serializers
 
 .. code-block:: python
 
-   from rest_flex_fields2.serializers import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
-   class CountrySerializer(FlexFieldsModelSerializer):
-       class Meta:
-           model = Country
-           fields = ["id", "name", "population", "capital", "square_miles"]
+    class CountrySerializer(FlexFieldsModelSerializer):
+        class Meta:
+            model = Country
+            fields = ["id", "name", "population", "capital", "square_miles"]
 
 
-   class PersonSerializer(FlexFieldsModelSerializer):
-       country = CountrySerializer(fields=["id", "name"])
+    class PersonSerializer(FlexFieldsModelSerializer):
+        country = CountrySerializer(fields=["id", "name"])
 
-       class Meta:
-           model = Person
-           fields = ["id", "name", "country"]
+        class Meta:
+            model = Person
+            fields = ["id", "name", "country"]
 

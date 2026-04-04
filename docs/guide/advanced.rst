@@ -9,39 +9,39 @@ Parameter names and wildcard values can be configured with the Django setting
 see :doc:`/reference/api-reference`.
 
 .. list-table::
-   :header-rows: 1
-   :widths: 35 45 20
+    :header-rows: 1
+    :widths: 35 45 20
 
-   * - Option
-     - Description
-     - Default
-   * - ``EXPAND_PARAM``
-     - Query parameter name for requested expansions.
-     - ``"expand"``
-   * - ``MAXIMUM_EXPANSION_DEPTH``
-     - Maximum allowed expansion depth. ``None`` means unlimited.
-     - ``None``
-   * - ``FIELDS_PARAM``
-     - Query parameter name for sparse field inclusion.
-     - ``"fields"``
-   * - ``OMIT_PARAM``
-     - Query parameter name for explicit exclusions.
-     - ``"omit"``
-   * - ``RECURSIVE_EXPANSION_PERMITTED``
-     - Whether recursive expansion patterns are allowed.
-     - ``True``
-   * - ``WILDCARD_VALUES``
-     - Wildcard values that mean all fields or all expandable fields. Set to
-       ``None`` to disable wildcards.
-     - ``["*", "~all"]``
+    * - Option
+      - Description
+      - Default
+    * - ``EXPAND_PARAM``
+      - Query parameter name for requested expansions.
+      - ``"expand"``
+    * - ``MAXIMUM_EXPANSION_DEPTH``
+      - Maximum allowed expansion depth. ``None`` means unlimited.
+      - ``None``
+    * - ``FIELDS_PARAM``
+      - Query parameter name for sparse field inclusion.
+      - ``"fields"``
+    * - ``OMIT_PARAM``
+      - Query parameter name for explicit exclusions.
+      - ``"omit"``
+    * - ``RECURSIVE_EXPANSION_PERMITTED``
+      - Whether recursive expansion patterns are allowed.
+      - ``True``
+    * - ``WILDCARD_VALUES``
+      - Wildcard values that mean all fields or all expandable fields. Set to
+        ``None`` to disable wildcards.
+      - ``["*", "~all"]``
 
 Example:
 
 .. code-block:: python
 
-   REST_FLEX_FIELDS2 = {
-       "EXPAND_PARAM": "include",
-   }
+    REST_FLEX_FIELDS2 = {
+        "EXPAND_PARAM": "include",
+    }
 
 .. warning::
 
@@ -66,16 +66,19 @@ Example:
 
 .. code-block:: python
 
-   class PersonSerializer(FlexFieldsModelSerializer):
-       maximum_expansion_depth = 2
-       recursive_expansion_permitted = False
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
-       class Meta:
-           model = Person
-           fields = ["id", "name", "manager"]
-           expandable_fields = {
-               "manager": "people.api.serializers.PersonSerializer",
-           }
+
+    class PersonSerializer(FlexFieldsModelSerializer):
+        maximum_expansion_depth = 2
+        recursive_expansion_permitted = False
+
+        class Meta:
+            model = Person
+            fields = ["id", "name", "manager"]
+            expandable_fields = {
+                "manager": "people.api.serializers.PersonSerializer",
+            }
 
 With this configuration, requests such as ``?expand=manager.manager.manager``
 raise a validation error.
@@ -88,12 +91,12 @@ records the fields expanded during serialization.
 
 .. code-block:: python
 
-   serializer = PersonSerializer(
-       instance=person,
-       context={"request": request},
-   )
-   payload = serializer.data
-   expanded = serializer.expanded_fields
+    serializer = PersonSerializer(
+        instance=person,
+        context={"request": request},
+    )
+    payload = serializer.data
+    expanded = serializer.expanded_fields
 
 ``expanded`` can be used in tests to assert behavior for a specific query.
 
@@ -120,16 +123,16 @@ wins:
 
 .. code-block:: text
 
-   GET /person/13322?fields=id,name&expand=country
+    GET /person/13322?fields=id,name&expand=country
 
 Response:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe"
-   }
+    {
+        "id": 13322,
+        "name": "John Doe"
+    }
 
 Utility Functions
 -----------------
@@ -137,13 +140,13 @@ Utility Functions
 For broader endpoint usage patterns that pair with these helpers, see
 :doc:`/guide/usage`.
 
-``rest_flex_fields2.is_expanded(request, field)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``rest_flex_fields2.utils.is_expanded(request, field)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Returns whether a field was requested via the active expansion parameter.
 
-``rest_flex_fields2.is_included(request, field)``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+``rest_flex_fields2.utils.is_included(request, field)``
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Returns whether a field remains included after ``fields`` and ``omit`` are
 applied.
@@ -152,19 +155,20 @@ Example view usage:
 
 .. code-block:: python
 
-  from rest_flex_fields2.utils import is_expanded
+    from rest_flex_fields2.utils import is_expanded
+    from rest_flex_fields.views import FlexFieldsModelViewSet
 
 
-   class PersonViewSet(FlexFieldsModelViewSet):
-       serializer_class = PersonSerializer
+    class PersonViewSet(FlexFieldsModelViewSet):
+        serializer_class = PersonSerializer
 
-       def get_queryset(self):
-           queryset = Person.objects.all()
+        def get_queryset(self):
+            queryset = Person.objects.all()
 
-           if is_expanded(self.request, "country"):
-               queryset = queryset.select_related("country")
+            if is_expanded(self.request, "country"):
+                queryset = queryset.select_related("country")
 
-           return queryset
+            return queryset
 
 Query Optimization Backend
 --------------------------
@@ -180,11 +184,11 @@ and ``only()`` based on the requested fields and expansions.
 
 .. code-block:: python
 
-   REST_FRAMEWORK = {
-       "DEFAULT_FILTER_BACKENDS": (
-           "rest_flex_fields2.filter_backends.FlexFieldsFilterBackend",
-       ),
-   }
+    REST_FRAMEWORK = {
+        "DEFAULT_FILTER_BACKENDS": (
+            "rest_flex_fields2.filter_backends.FlexFieldsFilterBackend",
+        ),
+    }
 
 .. warning::
 

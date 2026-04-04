@@ -54,52 +54,52 @@ Default response:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States",
-           "population": 330000000
-       },
-       "occupation": "Programmer",
-       "hobbies": ["rock climbing", "sipping coffee"]
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "country": {
+            "name": "United States",
+            "population": 330000000
+        },
+        "occupation": "Programmer",
+        "hobbies": ["rock climbing", "sipping coffee"]
+    }
 
 Request with ``?fields=id,name,country``:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States",
-           "population": 330000000
-       }
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "country": {
+            "name": "United States",
+            "population": 330000000
+        }
+    }
 
 Request with ``?fields=id,name,country.name``:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "country": {
-           "name": "United States"
-       }
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "country": {
+            "name": "United States"
+        }
+    }
 
 Request with ``?omit=country``:
 
 .. code-block:: json
 
-   {
-       "id": 13322,
-       "name": "John Doe",
-       "occupation": "Programmer",
-       "hobbies": ["rock climbing", "sipping coffee"]
-   }
+    {
+        "id": 13322,
+        "name": "John Doe",
+        "occupation": "Programmer",
+        "hobbies": ["rock climbing", "sipping coffee"]
+    }
 
 
 Where to apply controls

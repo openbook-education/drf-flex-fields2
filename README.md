@@ -51,7 +51,7 @@ pip install drf-flex-fields2
 ## Quick Example
 
 ```python
-from rest_flex_fields2 import FlexFieldsModelSerializer
+from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
 class StateSerializer(FlexFieldsModelSerializer):

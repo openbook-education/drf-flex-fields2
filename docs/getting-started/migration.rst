@@ -36,14 +36,14 @@ fix import cycles during Django initialization.
 
 .. code-block:: python
 
-   from rest_flex_fields import FlexFieldsModelSerializer
+    from rest_flex_fields import FlexFieldsModelSerializer
 
 
 **After (module-level import):**
 
 .. code-block:: python
 
-   from rest_flex_fields2.serializers import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 Update Django Settings
 ^^^^^^^^^^^^^^^^^^^^^^
@@ -74,7 +74,7 @@ After updating the imports, run your test suite to ensure everything works corre
 
 .. code-block:: bash
 
-   python manage.py test
+    python manage.py test
 
 If you don't have tests yet, we recommend adding them to your project to catch
 any integration issues early.
