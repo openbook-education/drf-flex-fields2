@@ -1,11 +1,11 @@
-"""
-DRF filter backends for flex-fields.
+""" DRF filter backends for flex-fields.
 
 Provides two backends:
 
 - `FlexFieldsDocsFilterBackend` — a no-op backend whose only purpose is to
   inject the ``fields``, ``omit``, and ``expand`` query parameters into the
   generated API schema (e.g. drf-spectacular / drf-yasg).
+
 - `FlexFieldsFilterBackend` — extends the docs backend with actual queryset
   optimisation: it resolves the active field selection and expansion options
   and applies ``only()`` / ``select_related()`` / ``prefetch_related()`` to
@@ -41,8 +41,7 @@ WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES or [])
 
 
 class FlexFieldsDocsFilterBackend(BaseFilterBackend):
-    """
-    No-op filter backend that adds flex-fields parameters to the API schema.
+    """ No-op filter backend that adds flex-fields parameters to the API schema.
 
     Does not modify the queryset.  Its sole purpose is to expose the
     ``fields``, ``omit``, and ``expand`` query parameters in the OpenAPI
@@ -56,8 +55,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     @staticmethod
     @lru_cache()
     def _get_field(field_name: str, model: models.Model) -> Optional[models.Field]:
-        """
-        Return the Django model field for `field_name`, or ``None``.
+        """ Return the Django model field for `field_name`, or ``None``.
 
         Result is cached per ``(field_name, model)`` pair via ``lru_cache``.
         Returns ``None`` when the field does not exist on the model (e.g. for
@@ -73,8 +71,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
     def _get_expandable_fields(
         cls, serializer_class: Any, parents: list = [], prefix: str = ""
     ) -> list:
-        """
-        Return a flat list of all expandable field paths for `serializer_class`.
+        """ Return a flat list of all expandable field paths for `serializer_class`.
 
         Traverses nested `FlexFieldsSerializerMixin` subclasses recursively
         and builds dot-separated paths (e.g. ``['author', 'author.profile']``).
@@ -121,8 +118,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _get_serializer_class_from_lazy_string(full_lazy_path: str):
-        """
-        Resolve a dotted string path to a serializer class.
+        """ Resolve a dotted string path to a serializer class.
 
         Tries the exact path first; if that fails and the path does not
         already end in ``.serializers``, appends ``.serializers`` and retries.
@@ -145,8 +141,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _import_serializer_class(path: str, class_name: str):
-        """
-        Import `class_name` from the module at `path`.
+        """ Import `class_name` from the module at `path`.
 
         Returns the class when it is a ``serializers.Serializer`` subclass,
         or ``None`` when the module cannot be imported, the attribute is
@@ -166,8 +161,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @staticmethod
     def _get_fields(serializer_class):
-        """
-        Return a comma-joined string of the field names declared on `serializer_class`.
+        """ Return a comma-joined string of the field names declared on `serializer_class`.
 
         Reads ``Meta.fields`` and joins the values so they can be used as
         an example value in the generated schema parameter.
@@ -181,8 +175,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
             return ""
 
     def get_schema_operation_parameters(self, view):
-        """
-        Return the OpenAPI query parameter definitions for the flex-fields params.
+        """ Return the OpenAPI query parameter definitions for the flex-fields params.
 
         Emits ``fields``, ``omit``, and ``expand`` parameter objects for the
         view's serializer when it is a `FlexFieldsSerializerMixin` subclass.
@@ -242,8 +235,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
 
 class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
-    """
-    Filter backend that optimises querysets based on the active flex-fields options.
+    """ Filter backend that optimises querysets based on the active flex-fields options.
 
     Extends `FlexFieldsDocsFilterBackend` with actual queryset manipulation:
     applies ``only()`` to restrict fetched columns and
@@ -263,8 +255,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
     def filter_queryset(
         self, request: "Request", queryset: "QuerySet", view: "GenericViewSet"
     ):
-        """
-        Apply field-selection and relation-prefetch optimisations to `queryset`.
+        """ Apply field-selection and relation-prefetch optimisations to `queryset`.
 
         Resolves the active ``fields`` / ``omit`` / ``expand`` options from
         the request, then calls ``only()``, ``select_related()``, and
@@ -272,12 +263,14 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
         when the view's serializer is not a `FlexFieldsSerializerMixin`
         subclass, or when the request method is not ``GET``.
         """
+        # Early exit: only process GET requests on flex-fields serializers.
         if (
             not issubclass(view.get_serializer_class(), FlexFieldsSerializerMixin)
             or request.method != "GET"
         ):
             return queryset
 
+        # Retrieve view-level configuration for query optimisation.
         auto_remove_fields_from_query = getattr(
             view, "auto_remove_fields_from_query", True
         )
@@ -286,6 +279,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
         )
         required_query_fields = list(getattr(view, "required_query_fields", []))
 
+        # Instantiate serializer and apply active flex-fields options.
         serializer = view.get_serializer(  # type: FlexFieldsSerializerMixin
             context=view.get_serializer_context()
         )
@@ -295,6 +289,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
         )
         serializer._flex_fields_rep_applied = True
 
+        # Classify model fields: regular fields and nested relations.
         model_fields = []
         nested_model_fields = []
         for field in serializer.fields.values():
@@ -306,6 +301,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
                         (model_field.is_relation and model_field.many_to_one and not model_field.concrete):  # Include GenericForeignKey
                     nested_model_fields.append(model_field)
 
+        # Optimise queryset: restrict fetched columns via only().
         if auto_remove_fields_from_query:
             queryset = queryset.only(
                 *(
@@ -319,6 +315,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
                 )
             )
 
+        # Optimise queryset: prefetch relations via select_related() and prefetch_related().
         if auto_select_related_on_query and nested_model_fields:
             queryset = queryset.select_related(
                 *(
@@ -342,8 +339,7 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
     @staticmethod
     @lru_cache()
     def _get_field(field_name: str, model: models.Model) -> Optional[models.Field]:
-        """
-        Return the Django model field for `field_name`, or ``None``.
+        """ Return the Django model field for `field_name`, or ``None``.
 
         Overrides the parent implementation using the same caching strategy.
         Returns ``None`` for serializer-only or method fields that have no

@@ -8,9 +8,7 @@ from tests.testapp.serializers import PetSerializer, TaggedItemSerializer
 
 
 class PetViewSet(FlexFieldsModelViewSet):
-    """
-    API endpoint for testing purposes.
-    """
+    """API endpoint for testing purposes."""
 
     serializer_class = PetSerializer
     queryset = Pet.objects.all()

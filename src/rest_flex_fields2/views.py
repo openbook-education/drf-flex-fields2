@@ -1,5 +1,4 @@
-"""
-Flex-fields view mixin and model view set.
+""" Flex-fields view mixin and model view set.
 
 Provides `FlexFieldsMixin` for controlling per-action expansion permissions
 and the ready-to-use `FlexFieldsModelViewSet` that combines the mixin with
@@ -11,8 +10,7 @@ from rest_framework.viewsets import ModelViewSet
 
 
 class FlexFieldsMixin:
-    """
-    View mixin that restricts which fields may be expanded on list actions.
+    """ View mixin that restricts which fields may be expanded on list actions.
 
     Set ``permit_list_expands`` to a list of field names that are allowed to
     be expanded when the view is handling a ``list`` request.  The allowed
@@ -23,8 +21,7 @@ class FlexFieldsMixin:
     action: str | None = None
 
     def get_serializer_context(self) -> dict[str, Any]:
-        """
-        Extend the serializer context with ``permitted_expands`` for list actions.
+        """ Extend the serializer context with ``permitted_expands`` for list actions.
 
         When the current action is ``list``, adds
         ``context['permitted_expands']`` populated from ``permit_list_expands``
@@ -39,8 +36,7 @@ class FlexFieldsMixin:
 
 
 class FlexFieldsModelViewSet(FlexFieldsMixin, ModelViewSet):
-    """
-    Convenience view set combining `FlexFieldsMixin` with ``ModelViewSet``.
+    """ Convenience view set combining `FlexFieldsMixin` with ``ModelViewSet``.
 
     Drop-in replacement for ``viewsets.ModelViewSet`` with list-action
     expansion control provided by `FlexFieldsMixin`.

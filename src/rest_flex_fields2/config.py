@@ -1,5 +1,4 @@
-"""
-Runtime configuration for ``REST_FLEX_FIELDS22``.
+""" Runtime configuration for ``REST_FLEX_FIELDS2``.
 
 Reads the optional ``REST_FLEX_FIELDS2`` dict from Django settings and
 exposes validated constants used throughout the package.  Raises
