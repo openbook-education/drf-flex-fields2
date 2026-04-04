@@ -285,9 +285,11 @@ class FlexFieldsFilterBackend(FlexFieldsDocsFilterBackend):
             if model_field:
                 model_fields.append(model_field)
 
-                if field.field_name in serializer.expanded_fields \
-                or (model_field.is_relation and not model_field.many_to_one) \
-                or (model_field.is_relation and model_field.many_to_one and not model_field.concrete):  # Include GenericForeignKey
+                if (
+                    (field.field_name in serializer.expanded_fields) or
+                    (model_field.is_relation and not model_field.many_to_one) or
+                    (model_field.is_relation and model_field.many_to_one and not model_field.concrete)
+                ):  # Include GenericForeignKey
                     nested_model_fields.append(model_field)
 
         # Optimise queryset: restrict fetched columns via only().
