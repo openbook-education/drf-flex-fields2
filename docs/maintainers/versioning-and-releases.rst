@@ -71,7 +71,7 @@ Release Checklist
       git add pyproject.toml docs/reference/changelog.rst
       git commit -m "Release vX.Y.Z"
 
-8. **Open and merge pull request.
+8. **Open and merge pull request.**
 
    Now open a pull request to merge the release preparation branch into main. At this
    stage Copilot will review the branch, code quality and security will be scanned and
