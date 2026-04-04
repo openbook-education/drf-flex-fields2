@@ -8,7 +8,7 @@ permissions:
 
 jobs:
     run-full-test-suite:
-        name: "Run full test suite (Python ${{ matrix.python-version }})"
+        name: "Run full test suite"
         runs-on: ubuntu-latest
 
         steps:
