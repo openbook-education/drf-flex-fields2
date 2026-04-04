@@ -175,8 +175,9 @@ extensions, the sphinx-rtd-theme, autoapi directories, and build options.
 ^^^^^^^^^^^^^^^^^^^^^
 
 This file was added as the Read the Docs build configuration. It installs
-Poetry, installs the project together with the docs dependency group, and
-builds the site with Sphinx.
+Poetry after environment creation, overrides the install step to install the
+project together with the docs dependency group, and builds the site with
+Sphinx.
 
 ``docs/``
 ^^^^^^^^^
