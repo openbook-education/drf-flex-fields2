@@ -25,7 +25,7 @@ between 2018 and 2023. For more details on why this fork exists, see
 in the documentation for detailed instructions. The short version is:
 
 1. Upgrade Django and DRF dependencies, if not done already.
-2. Insteall `drf-flex-fields2` instead of `drf-flex-fields2`.
+2. Install `drf-flex-fields2` instead of `drf-flex-fields`.
 3. Fix import paths
 4. Rename `REST_FLEX_FIELDS` to `REST_FLEX_FIELDS2` in Django settings.
 
