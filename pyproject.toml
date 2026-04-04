@@ -14,7 +14,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Framework :: Django",
-    "Framework :: Django :: 6.0",
     "Framework :: Django REST framework",
 ]
 
