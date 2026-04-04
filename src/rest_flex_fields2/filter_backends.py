@@ -32,10 +32,7 @@ from .config import (
     OMIT_PARAM,
     WILDCARD_VALUES,
 )
-from .serializers import (
-    FlexFieldsModelSerializer,
-    FlexFieldsSerializerMixin,
-)
+from .serializers import FlexFieldsSerializerMixin
 
 WILDCARD_VALUES_JOINED = ",".join(WILDCARD_VALUES or [])
 

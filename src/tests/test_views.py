@@ -593,9 +593,7 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = SimpleNamespace(**attrs)
         view.get_serializer_class = lambda: PetViewSet.serializer_class
         view.get_serializer_context = lambda: {"request": request}
-        view.get_serializer = lambda *args, **kwargs: PetViewSet.serializer_class(
-            *args, **kwargs
-        )
+        view.get_serializer = PetViewSet.serializer_class
         return view
 
     def test_filter_queryset_returns_unchanged_for_non_get(self):
@@ -621,7 +619,7 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = SimpleNamespace(
             get_serializer_class=lambda: PetStoreSerializer,
             get_serializer_context=lambda: {"request": request},
-            get_serializer=lambda *args, **kwargs: PetStoreSerializer(*args, **kwargs),
+            get_serializer=PetStoreSerializer,
         )
         queryset = Pet.objects.all()
 
