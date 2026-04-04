@@ -1,5 +1,4 @@
-"""
-Utility helpers for ``rest_flex_fields2``.
+"""Utility helpers for ``rest_flex_fields2``.
 
 Provides request-inspection functions (`is_expanded`, `is_included`) and
 the `split_levels` helper that partitions dot-notation field lists into
@@ -12,8 +11,7 @@ from .config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 
 
 def is_expanded(request, field: str) -> bool:
-    """
-    Return whether `field` is requested for expansion.
+    """Return whether `field` is requested for expansion.
 
     Inspects the ``expand`` query parameter on `request`.  Returns
     ``True`` when `field` appears in the comma-separated expand list, or
@@ -31,8 +29,7 @@ def is_expanded(request, field: str) -> bool:
 
 
 def is_included(request, field: str) -> bool:
-    """
-    Return whether `field` should be included in the response.
+    """Return whether `field` should be included in the response.
 
     Returns ``False`` when the ``fields`` sparse-fieldset parameter is
     present and `field` is not listed, or when the ``omit`` parameter is
@@ -59,9 +56,10 @@ def is_included(request, field: str) -> bool:
     return True
 
 
-def split_levels(fields):
-    """
-    Split a dot-notation field list into current-level and next-level parts.
+def split_levels(
+    fields: str | Iterable[str],
+) -> tuple[list[str], dict[str, list[str]]]:
+    """Split a dot-notation field list into current-level and next-level parts.
 
     Given an iterable such as ``['a', 'a.b', 'a.d', 'c']``, returns a
     tuple ``(first_level, next_level)`` where ``first_level`` is the
@@ -70,8 +68,8 @@ def split_levels(fields):
     fragments (e.g. ``{'a': ['b', 'd']}``).  A plain string is treated
     as a comma-separated field list.
     """
-    first_level_fields = []
-    next_level_fields = {}
+    first_level_fields: list[str] = []
+    next_level_fields: dict[str, list[str]] = {}
 
     if not fields:
         return first_level_fields, next_level_fields

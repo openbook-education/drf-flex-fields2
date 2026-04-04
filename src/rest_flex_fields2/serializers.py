@@ -1,5 +1,4 @@
-"""
-Flex-fields serializer mixin and model serializer.
+"""Flex-fields serializer mixin and model serializer.
 
 Provides `FlexFieldsSerializerMixin` which adds ``fields``, ``omit``, and
 ``expand`` support to any DRF serializer, and the ready-to-use
@@ -11,7 +10,7 @@ import copy
 import importlib
 from typing import List, Optional, Tuple, Type
 
-from rest_framework import serializers
+from rest_framework.serializers import (Serializer, ModelSerializer, ValidationError)
 
 from .config import (
     EXPAND_PARAM,
@@ -24,12 +23,11 @@ from .config import (
 from .utils import split_levels
 
 
-class FlexFieldsSerializerMixin(serializers.Serializer):
-    """
-    Mixin that adds sparse-fieldset and nested-expansion support to a serializer.
+class FlexFieldsSerializerMixin(Serializer):
+    """Mixin that adds sparse-fieldset and nested-expansion support to a serializer.
 
     Accepts the ``fields``, ``omit``, and ``expand`` keyword arguments (names
-    are configurable via ``REST_FLEX_FIELDS`` settings) both as constructor
+    are configurable via ``REST_FLEX_FIELDS2`` settings) both as constructor
     kwargs and as query-string parameters on the current request.  Query
     parameters are only read on the root serializer; nested serializers
     receive their options through constructor kwargs propagated by the parent.
@@ -46,7 +44,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         """Initialize flex-fields options from kwargs and request query params."""
         expand = list(kwargs.pop(EXPAND_PARAM, []))
         fields = list(kwargs.pop(FIELDS_PARAM, []))
-        omit = list(kwargs.pop(OMIT_PARAM, []))
+        omit   = list(kwargs.pop(OMIT_PARAM, []))
         parent = kwargs.pop("parent", None)
 
         super().__init__(*args, **kwargs)
@@ -58,17 +56,15 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         self._flex_options_base = {
             "expand": expand,
             "fields": fields,
-            "omit": omit,
+            "omit":   omit,
         }
+
         self._flex_options_rep_only = {
-            "expand": (
-                self._get_permitted_expands_from_query_param(EXPAND_PARAM)
-                if not expand
-                else []
-            ),
-            "fields": (self._get_query_param_value(FIELDS_PARAM) if not fields else []),
-            "omit": (self._get_query_param_value(OMIT_PARAM) if not omit else []),
+            "expand": self._get_permitted_expands_from_query_param(EXPAND_PARAM) if not expand else [],
+            "fields": self._get_query_param_value(FIELDS_PARAM) if not fields else [],
+            "omit":   self._get_query_param_value(OMIT_PARAM) if not omit else [],
         }
+
         self._flex_options_all = {
             "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
             "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
@@ -76,8 +72,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         }
 
     def get_maximum_expansion_depth(self) -> Optional[int]:
-        """
-        Return the effective maximum expansion depth.
+        """Return the effective maximum expansion depth.
 
         Uses the serializer-level ``maximum_expansion_depth`` attribute when
         set, otherwise falls back to the ``MAXIMUM_EXPANSION_DEPTH`` setting.
@@ -85,8 +80,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return self.maximum_expansion_depth or MAXIMUM_EXPANSION_DEPTH
 
     def get_recursive_expansion_permitted(self) -> bool:
-        """
-        Return whether recursive expansion is allowed.
+        """Return whether recursive expansion is allowed.
 
         Uses the serializer-level ``recursive_expansion_permitted`` attribute
         when set, otherwise falls back to the ``RECURSIVE_EXPANSION_PERMITTED``
@@ -112,8 +106,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return fields
 
     def apply_flex_fields(self, fields, flex_options):
-        """
-        Apply sparse-fieldset and expansion options to `fields` in place.
+        """Apply sparse-fieldset and expansion options to `fields` in place.
 
         Removes fields that are excluded by ``omit`` or not present in
         ``fields`` (sparse-fieldset), then replaces fields listed in
@@ -143,8 +136,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
     def _make_expanded_field_serializer(
         self, name, nested_expand, nested_fields, nested_omit
     ):
-        """
-        Build and return the nested serializer instance for an expanded field.
+        """Build and return the nested serializer instance for an expanded field.
 
         Looks up `name` in ``_expandable_fields``, resolves any lazy string
         path to a concrete class, then instantiates the serializer with the
@@ -161,11 +153,9 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             settings = {}
 
         if isinstance(serializer_class, str):
-            serializer_class = self._get_serializer_class_from_lazy_string(
-                serializer_class
-            )
+            serializer_class = self._get_serializer_class_from_lazy_string(serializer_class)
 
-        if issubclass(serializer_class, serializers.Serializer):
+        if issubclass(serializer_class, Serializer):
             settings["context"] = self.context
 
         if issubclass(serializer_class, FlexFieldsSerializerMixin):
@@ -182,9 +172,8 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
 
         return serializer_class(**settings)
 
-    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[serializers.Serializer]:
-        """
-        Resolve a dotted string path to a serializer class.
+    def _get_serializer_class_from_lazy_string(self, full_lazy_path: str) -> Type[Serializer]:
+        """Resolve a dotted string path to a serializer class.
 
         Tries the exact path first; if that fails and the path does not
         already end in ``.serializers``, appends ``.serializers`` and retries.
@@ -205,14 +194,13 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
 
         raise Exception(error)
 
-    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[serializers.Serializer]], Optional[str]]:
-        """
-        Import `class_name` from the module at `path`.
+    def _import_serializer_class(self, path: str, class_name: str) -> Tuple[Optional[Type[Serializer]], Optional[str]]:
+        """Import `class_name` from the module at `path`.
 
         Returns a ``(serializer_class, None)`` tuple on success, or
         ``(None, error_message)`` when the module cannot be imported, the
         attribute does not exist, or the attribute is not a
-        ``serializers.Serializer`` subclass.
+        ``Serializer`` subclass.
         """
         try:
             module = importlib.import_module(path)
@@ -228,7 +216,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         if not isinstance(resolved, type):
             return None, f"Attribute {class_name} in module {path} is not a class"
 
-        if not issubclass(resolved, serializers.Serializer):
+        if not issubclass(resolved, Serializer):
             return None, f"Class {class_name} in module {path} is not a Serializer subclass"
 
         return resolved, None
@@ -240,8 +228,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         sparse_fields: List[str],
         next_level_omits: List[str],
     ) -> List[str]:
-        """
-        Return a list of field names that should be removed from the serializer.
+        """Return a list of field names that should be removed from the serializer.
 
         A field is removed when it appears in `omit_fields`, or when
         `sparse_fields` is non-empty and the field is not listed there.
@@ -256,9 +243,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             return to_remove
 
         for field_name in current_fields:
-            should_exist = self._should_field_exist(
-                field_name, omit_fields, sparse_fields, next_level_omits
-            )
+            should_exist = self._should_field_exist(field_name, omit_fields, sparse_fields, next_level_omits)
 
             if not should_exist:
                 to_remove.append(field_name)
@@ -272,8 +257,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         sparse_fields: List[str],
         next_level_omits: List[str],
     ) -> bool:
-        """
-        Return whether `field_name` should be kept in the serializer output.
+        """Return whether `field_name` should be kept in the serializer output.
 
         `next_level_omits` contains field names whose omit rule targets a
         deeper nesting level; they must not be removed at the current level
@@ -296,8 +280,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         sparse_fields: List[str],
         next_level_omits: List[str],
     ) -> List[str]:
-        """
-        Return the validated list of field names to expand.
+        """Return the validated list of field names to expand.
 
         Wildcards are resolved to all declared expandable field names.
         Fields not present in ``_expandable_fields``, or excluded by the
@@ -309,7 +292,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         if self._contains_wildcard_value(expand_fields):
             expand_fields = list(self._expandable_fields.keys())
 
-        accum = []
+        expanded_field_names = []
 
         for name in expand_fields:
             if name not in self._expandable_fields:
@@ -320,14 +303,13 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             ):
                 continue
 
-            accum.append(name)
+            expanded_field_names.append(name)
 
-        return accum
+        return expanded_field_names
 
     @property
     def _expandable_fields(self) -> dict:
-        """
-        Return the mapping of expandable field names to their serializer config.
+        """Return the mapping of expandable field names to their serializer config.
 
         Prefers ``Meta.expandable_fields`` for consistency with the DRF
         convention of placing serializer metadata on the inner ``Meta`` class.
@@ -342,8 +324,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return self.expandable_fields
 
     def _get_query_param_value(self, field: str) -> List[str]:
-        """
-        Return the parsed query-parameter values for `field`.
+        """Return the parsed query-parameter values for `field`.
 
         Only reads query parameters on the root serializer (i.e. when
         ``self.parent`` is ``None``).  Supports both plain repeated params
@@ -377,17 +358,15 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return expand_path.split(".")  # noqa: E501
 
     def recursive_expansion_not_permitted(self):
-        """
-        Raise a validation error indicating recursive expansion.
+        """Raise a validation error indicating recursive expansion.
 
         Override this method to raise a custom exception instead of the
         default ``ValidationError``.
         """
-        raise serializers.ValidationError(detail="Recursive expansion found")
+        raise ValidationError(detail="Recursive expansion found")
 
     def _validate_recursive_expansion(self, expand_path: str) -> None:
-        """
-        Raise when `expand_path` contains a repeated segment.
+        """Raise when `expand_path` contains a repeated segment.
 
         Parses the dot-separated `expand_path` and checks for duplicate
         segments.  Does nothing when recursive expansion is permitted
@@ -400,21 +379,20 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         expansion_path = self._split_expand_field(expand_path)
         expansion_length = len(expansion_path)
         expansion_length_unique = len(set(expansion_path))
+
         if expansion_length != expansion_length_unique:
             self.recursive_expansion_not_permitted()
 
     def expansion_depth_exceeded(self):
-        """
-        Raise a validation error indicating the expansion depth limit was exceeded.
+        """Raise a validation error indicating the expansion depth limit was exceeded.
 
         Override this method to raise a custom exception instead of the
         default ``ValidationError``.
         """
-        raise serializers.ValidationError(detail="Expansion depth exceeded")
+        raise ValidationError(detail="Expansion depth exceeded")
 
     def _validate_expansion_depth(self, expand_path: str) -> None:
-        """
-        Raise when `expand_path` exceeds the configured maximum depth.
+        """Raise when `expand_path` exceeds the configured maximum depth.
 
         Counts the dot-separated segments of `expand_path` and compares
         against ``get_maximum_expansion_depth()``.  Does nothing when no
@@ -429,8 +407,7 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
             self.expansion_depth_exceeded()
 
     def _get_permitted_expands_from_query_param(self, expand_param: str) -> List[str]:
-        """
-        Return the expand list filtered by ``permitted_expands`` from context.
+        """Return the expand list filtered by ``permitted_expands`` from context.
 
         When ``permitted_expands`` is present in the serializer context (e.g.
         set by `FlexFieldsMixin` for list actions), wildcard expansion is
@@ -451,21 +428,20 @@ class FlexFieldsSerializerMixin(serializers.Serializer):
         return expand
 
     def _contains_wildcard_value(self, expand_values: List[str]) -> bool:
-        """
-        Return whether `expand_values` contains any configured wildcard token.
+        """Return whether `expand_values` contains any configured wildcard token.
 
         Always returns ``False`` when ``WILDCARD_VALUES`` is ``None``
         (wildcards disabled).
         """
         if WILDCARD_VALUES is None:
             return False
+
         intersecting_values = list(set(expand_values) & set(WILDCARD_VALUES))
         return len(intersecting_values) > 0
 
 
-class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, serializers.ModelSerializer):
-    """
-    Convenience serializer combining `FlexFieldsSerializerMixin` with ``ModelSerializer``.
+class FlexFieldsModelSerializer(FlexFieldsSerializerMixin, ModelSerializer):
+    """Convenience serializer combining `FlexFieldsSerializerMixin` with ``ModelSerializer``.
 
     Drop-in replacement for ``serializers.ModelSerializer`` that adds
     sparse-fieldset (``fields``, ``omit``) and nested-expansion (``expand``)

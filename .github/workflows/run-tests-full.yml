@@ -8,12 +8,8 @@ permissions:
 
 jobs:
     run-full-test-suite:
-        name: "Run full test suite (Python ${{ matrix.python-version }})"
+        name: "Run full test suite"
         runs-on: ubuntu-latest
-        strategy:
-            fail-fast: false
-            matrix:
-                python-version: ["3.12", "3.13"]
 
         steps:
             - name: "Checkout code"
@@ -25,7 +21,6 @@ jobs:
               uses: ./.github/actions/setup-ci-environment
               with:
                   setup-python: "true"
-                  python-version: ${{ matrix.python-version }}
 
             - name: "Run all checks and tests with coverage"
               run: |

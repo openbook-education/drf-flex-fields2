@@ -1,0 +1,81 @@
+// -*- mode: jsonc -*-
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:best-practices",
+        ":dependencyDashboard",
+        ":semanticCommits",
+        ":semanticCommitTypeAll(chore)",
+        ":automergeRequireAllStatusChecks",
+        "helpers:pinGitHubActionDigests"
+    ],
+    "timezone": "Europe/Berlin",
+    "dependencyDashboardTitle": "Dependency Dashboard",
+    "enabledManagers": ["github-actions", "poetry"],
+    "labels": ["dependencies", "automated"],
+    "configMigration": true,
+    "prConcurrentLimit": 5,
+    "prHourlyLimit": 2,
+    "rebaseWhen": "behind-base-branch",
+    "lockFileMaintenance": {
+        "enabled": true,
+        "automerge": true,
+        "platformAutomerge": true,
+        "addLabels": ["minor-update"]
+    },
+
+    // NOTE: Ordering matters. Later rules override earlier ones.
+    "packageRules": [
+        {
+            // NOTE: For applications "bump" is a good choice, to use the most recent versions.
+            // For reusable libraries "widen" combined with testing against different versions
+            // causes much less friction for downstream users. Our strategy is to set the upper
+            // bound to the newest tested version (usually the most recent version available)
+            // of each package.
+            "description": "Library strategy: widen version ranges instead of bumping minimums",
+            "matchManagers": ["poetry"],
+            "rangeStrategy": "widen",
+            "allowedVersions": ">={{sub major 1}}"
+        },
+        {
+            // NOTE: To reduce noise, this combines non-runtime dependencies into a single PR.
+            // Also we always bump to the latest version instead of widening the version range.
+            // For all other dependencies we keep the one PR per dependency / widen range logic.
+            "description": "Group development and documentation dependencies",
+            "matchManagers": ["poetry"],
+            "excludeDepTypes": ["dependencies"],
+            "groupName": "non-runtime dependencies",
+            "rangeStrategy": "bump"
+        },
+        {
+            "description": "Automerge safe updates (non-breaking by default)",
+            "matchUpdateTypes": ["digest", "minor", "patch", "pin", "pinDigest"],
+            "automerge": true,
+            "platformAutomerge": true,
+            "addLabels": ["minor-update"]
+        },
+        {
+            "description": "Major updates require manual review",
+            "matchUpdateTypes": ["major"],
+            "automerge": false,
+            "platformAutomerge": false,
+            "addLabels": ["major-update", "manual-review"]
+        },
+        {
+            "description": "Django REST Framework is not semver-safe (minor/patch may break)",
+            "matchPackageNames": ["djangorestframework"],
+            "allowedVersions": ">={{sub minor 3}}",
+            "matchUpdateTypes": ["minor", "patch"],
+            "automerge": false,
+            "platformAutomerge": false,
+            "addLabels": ["major-update", "manual-review"],
+            "prBodyNotes": ["Django REST Framework does not strictly follow semver. Minor and patch releases may contain breaking changes."]
+        },
+        {
+            "description": "Keep GitHub Actions updates organized",
+            "matchManagers": ["github-actions"],
+            "dependencyDashboardCategory": "GitHub Actions",
+            "commitMessageTopic": "GitHub Actions dependencies"
+        }
+    ]
+}

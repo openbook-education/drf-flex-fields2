@@ -8,15 +8,15 @@ Repository-level and external service setup remains in
 Prerequisites
 -------------
 
-- Python 3.12 or 3.13
-- Poetry
+- A supported Python version
+- Poetry package manager
 
 Install dependencies
 --------------------
 
 .. code-block:: bash
 
-   poetry install --no-interaction --with docs
+    poetry install --no-interaction --with docs
 
 Run tests
 ---------
@@ -25,19 +25,19 @@ Run the full suite:
 
 .. code-block:: bash
 
-   poetry run python src/manage.py test
+    poetry run python src/manage.py test
 
 Run a specific test module:
 
 .. code-block:: bash
 
-   poetry run python src/manage.py test tests.test_serializer
+    poetry run python src/manage.py test tests.test_serializer
 
 Run a single test case:
 
 .. code-block:: bash
 
-   poetry run python src/manage.py test tests.test_serializer.YourTestCase
+    poetry run python src/manage.py test tests.test_serializer.YourTestCase
 
 Run test coverage
 -----------------
@@ -49,9 +49,9 @@ Run coverage from the repository root:
 
 .. code-block:: bash
 
-   export PYTHONPATH=src
-   poetry run coverage run --rcfile=pyproject.toml src/manage.py test tests
-   poetry run coverage report --rcfile=pyproject.toml -m
+    export PYTHONPATH=src
+    poetry run coverage run --rcfile=pyproject.toml src/manage.py test tests
+    poetry run coverage report --rcfile=pyproject.toml -m
 
 If coverage fails, review the ``Missing`` column and add tests for the
 reported lines or branches before opening a PR.

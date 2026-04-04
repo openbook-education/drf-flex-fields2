@@ -286,13 +286,6 @@ class TestSerialize(TestCase):
 
     def test_all_special_value_in_serialize(self):
         """Sparse ``fields`` containing ``__all__`` works correctly with validation."""
-        pet = Pet(
-            name="Garfield",
-            toys="paper ball, string",
-            species="cat",
-            owner=Person(name="Fred", employer=Company(name="McDonalds")),
-        )
-
         class PetSerializer(FlexFieldsModelSerializer):
             owner = serializers.PrimaryKeyRelatedField(
                 queryset=Person.objects.all(), allow_null=True
@@ -309,7 +302,7 @@ class TestSerialize(TestCase):
                 "toys": "paper ball",
                 "species": "cat",
                 "owner": None,
-                "diet": "lasanga",
+                "diet": "lasagna",
             },
         )
 

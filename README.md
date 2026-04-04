@@ -22,9 +22,13 @@ contribute fixes, docs, tests, or ideas, welcome.
 This is a fork of `drf-flex-fields` developed and maintained by Robert Singer
 between 2018 and 2023. For more details on why this fork exists, see
 [History](#history) below. See the [Migration Guide](https://drf-flex-fields2.readthedocs.io/en/latest/getting-started/migration/)
-in the documentation for detailed instructions. The short version is to
-upgrade your Django and DRF dependencies, if not done already, and then to
-replace `drf-flex-fields` with `drf-flex-fields2` and fix the import paths.
+in the documentation for detailed instructions. The short version is:
+
+1. Upgrade Django and DRF dependencies, if not done already.
+2. Install `drf-flex-fields2` instead of `drf-flex-fields`.
+3. Fix package name in import paths: `rest_flex_fields2` instead of `rest_flex_fields`
+4. Change package-level imports to deep imports, e.g.: `from rest_flex_fields2.serializers import FlexFieldsModelSerializer`
+5. Rename `REST_FLEX_FIELDS` to `REST_FLEX_FIELDS2` in Django settings.
 
 The `drf-flex-fields2` API is stable and compatible with the original `drf-flex-fields`
 package. There are currently no plans to break the existing API. However, if breaking
@@ -47,7 +51,7 @@ pip install drf-flex-fields2
 ## Quick Example
 
 ```python
-from rest_flex_fields2 import FlexFieldsModelSerializer
+from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
 class StateSerializer(FlexFieldsModelSerializer):

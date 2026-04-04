@@ -27,7 +27,7 @@ Module responsibilities
    ``FlexFieldsDocsFilterBackend`` for schema parameter support.
 
 ``config.py``
-   Centralizes runtime settings from ``REST_FLEX_FIELDS`` and exports constants
+   Centralizes runtime settings from ``REST_FLEX_FIELDS2`` and exports constants
    used by serializers and utilities.
 
 ``utils.py``

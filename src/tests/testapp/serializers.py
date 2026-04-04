@@ -3,7 +3,7 @@
 from rest_framework import serializers
 from rest_framework.relations import PrimaryKeyRelatedField
 
-from rest_flex_fields2 import FlexFieldsModelSerializer
+from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 from tests.testapp.models import Pet, PetStore, Person, Company, TaggedItem
 
 

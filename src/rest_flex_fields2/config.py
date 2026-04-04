@@ -1,7 +1,6 @@
-"""
-Runtime configuration for ``rest_flex_fields2``.
+"""Runtime configuration for ``REST_FLEX_FIELDS2``.
 
-Reads the optional ``REST_FLEX_FIELDS`` dict from Django settings and
+Reads the optional ``REST_FLEX_FIELDS2`` dict from Django settings and
 exposes validated constants used throughout the package.  Raises
 ``AssertionError`` or ``ValueError`` on invalid configuration so
 errors surface at import time rather than at request time.
@@ -9,8 +8,8 @@ errors surface at import time rather than at request time.
 
 from django.conf import settings
 
-FLEX_FIELDS_OPTIONS = getattr(settings, "REST_FLEX_FIELDS", {})
-"""Raw ``REST_FLEX_FIELDS`` dictionary from Django settings."""
+FLEX_FIELDS_OPTIONS = getattr(settings, "REST_FLEX_FIELDS2", {})
+"""Raw ``REST_FLEX_FIELDS2`` dictionary from Django settings."""
 
 EXPAND_PARAM = FLEX_FIELDS_OPTIONS.get("EXPAND_PARAM", "expand")
 """Query parameter name used to request expandable fields."""

@@ -4,19 +4,6 @@ Migration from drf-flex-fields
 If you are currently using the original ``drf-flex-fields`` package, migrating to
 ``drf-flex-fields2`` is straightforward and requires minimal changes to your codebase.
 
-Prerequisites
-^^^^^^^^^^^^^
-
-Before migrating, ensure your project meets the following requirements:
-
-- **Django 6.0** or newer
-- **Django REST Framework 3.17.0** or newer
-
-If your project is still on older versions of Django or DRF, you will need to
-upgrade them first. The original ``drf-flex-fields`` package should continue to
-work with older Django and DRF versions, but ``drf-flex-fields2`` requires the
-modern versions listed above.
-
 Installation
 ^^^^^^^^^^^^
 
@@ -39,46 +26,30 @@ Update Imports
 ^^^^^^^^^^^^^^
 
 Replace all imports of ``rest_flex_fields`` with ``rest_flex_fields2`` throughout
-your codebase. This is the only code change required.
+your codebase.
+
+If you imported symbols from the package root, update those to
+module-level imports instead. Package-level re-exports were removed to
+fix import cycles during Django initialization.
 
 **Before:**
 
 .. code-block:: python
 
-   from rest_flex_fields import FlexFieldsModelSerializer
+    from rest_flex_fields import FlexFieldsModelSerializer
 
 
-**After:**
+**After (module-level import):**
 
 .. code-block:: python
 
-   from rest_flex_fields2 import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
+Update Django Settings
+^^^^^^^^^^^^^^^^^^^^^^
 
-You can automate the import replacement using the following shell commands.
-
-**macOS (BSD sed):**
-
-.. code-block:: bash
-
-   find . -name "*.py" -type f -exec sed -i '' '/from rest_flex_fields2/! s/from rest_flex_fields/from rest_flex_fields2/g' {} +
-   find . -name "*.py" -type f -exec sed -i '' '/import rest_flex_fields2/! s/import rest_flex_fields/import rest_flex_fields2/g' {} +
-
-**Linux with GNU sed:**
-
-.. code-block:: bash
-
-   find . -name "*.py" -type f -exec sed -i '/from rest_flex_fields2/! s/from rest_flex_fields/from rest_flex_fields2/g' {} +
-   find . -name "*.py" -type f -exec sed -i '/import rest_flex_fields2/! s/import rest_flex_fields/import rest_flex_fields2/g' {} +
-
-**Windows PowerShell:**
-
-.. code-block:: powershell
-
-   Get-ChildItem -Path . -Filter *.py -Recurse | ForEach-Object {
-       (Get-Content $_.FullName) -replace 'from rest_flex_fields(?!2)', 'from rest_flex_fields2' | Set-Content $_.FullName
-       (Get-Content $_.FullName) -replace 'import rest_flex_fields(?!2)', 'import rest_flex_fields2' | Set-Content $_.FullName
-   }
+In your Django ``settings.py`` rename the variable ``REST_FLEX_FIELDS``
+to ``REST_FLEX_FIELDS2``.
 
 API Compatibility
 ^^^^^^^^^^^^^^^^^
@@ -103,7 +74,7 @@ After updating the imports, run your test suite to ensure everything works corre
 
 .. code-block:: bash
 
-   python manage.py test
+    python manage.py test
 
 If you don't have tests yet, we recommend adding them to your project to catch
 any integration issues early.
@@ -114,14 +85,10 @@ Troubleshooting
 **Import errors after migration?**
 
 - Ensure you've updated all imports from ``rest_flex_fields`` to ``rest_flex_fields2``
+- Replace package-level imports with module-level imports (for example,
+  ``from rest_flex_fields2.serializers import FlexFieldsModelSerializer``)
 - Run ``grep -rP "rest_flex_fields(?!2)" .`` to find any remaining old imports
 - Check virtualenv/venv activation: ``pip list | grep drf-flex-fields``
-
-**Version conflicts?**
-
-- Verify Django is 6.0+: ``python -m django --version``
-- Verify DRF is 3.17.0+: ``python -c "import rest_framework; print(rest_framework.__version__)"``
-- Update if needed: ``pip install --upgrade django djangorestframework``
 
 **Other issues?**
 

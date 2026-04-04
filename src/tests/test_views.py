@@ -2,7 +2,7 @@
 
 from http import HTTPStatus
 from types import SimpleNamespace
-from typing import cast
+from typing import ClassVar, cast
 from unittest.mock import patch
 
 from django.contrib.contenttypes.models import ContentType
@@ -19,6 +19,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_flex_fields2.filter_backends import FlexFieldsFilterBackend
 from rest_flex_fields2.config import EXPAND_PARAM, FIELDS_PARAM, OMIT_PARAM, WILDCARD_VALUES
 from rest_flex_fields2.filter_backends import FlexFieldsDocsFilterBackend
+from rest_flex_fields2.serializers import FlexFieldsSerializerMixin
 from tests.testapp.models import Company, Person, Pet, PetStore, TaggedItem
 from tests.testapp.serializers import PetStoreSerializer
 from tests.testapp.views import PetViewSet
@@ -410,7 +411,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
     def test_get_field_returns_none_for_missing_model_field(self):
         """Unknown model fields return ``None`` from helper lookup."""
-        self.assertIsNone(self.backend._get_field("does_not_exist", Pet))
+        self.assertIsNone(self.backend._get_model_field("does_not_exist", Pet))
 
     def test_get_expandable_fields_returns_empty_for_non_flex_serializer(self):
         """Serializer classes without expandable metadata return an empty list."""
@@ -426,7 +427,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
         class TupleExpandableSerializer:
             class Meta:
-                expandable_fields = {
+                expandable_fields: ClassVar[dict[str, object]] = {
                     "owner": ("tests.testapp.PersonSerializer", {"read_only": True}),
                 }
 
@@ -435,15 +436,125 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
         self.assertIn("owner", expanded)
         self.assertIn("owner.employer", expanded)
 
+    def test_get_expandable_fields_stops_on_cyclic_serializer_expands(self):
+        """Cyclic expandable-field graphs produce a finite flattened path list."""
+
+        class CyclicRootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["child"]
+                expandable_fields: ClassVar[dict[str, object]]
+
+        class CyclicChildSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {
+                "parent": CyclicRootSerializer,
+            }
+
+            class Meta:
+                fields = ["parent"]
+
+        CyclicRootSerializer.Meta.expandable_fields = {
+            "child": CyclicChildSerializer,
+        }
+
+        expanded = self.backend._get_expandable_fields(CyclicRootSerializer)
+
+        self.assertEqual(expanded, ["child", "child.parent"])
+
+    def test_get_expandable_fields_uses_class_level_fallback_recursively(self):
+        """Nested serializers can declare ``expandable_fields`` on the class itself."""
+
+        class LeafSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["value"]
+
+        class NestedSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {"leaf": LeafSerializer}
+
+            class Meta:
+                fields = ["leaf"]
+
+        class RootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["nested"]
+                expandable_fields: ClassVar[dict[str, object]] = {
+                    "nested": NestedSerializer,
+                }
+
+        expanded = self.backend._get_expandable_fields(RootSerializer)
+
+        self.assertEqual(expanded, ["nested", "nested.leaf"])
+
+    def test_get_schema_operation_parameters_include_nested_class_level_expands(self):
+        """Schema enum generation honors class-level expandable declarations on nested serializers."""
+
+        class LeafSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["value"]
+
+        class NestedSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {"leaf": LeafSerializer}
+
+            class Meta:
+                fields = ["leaf"]
+
+        class RootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["nested"]
+                expandable_fields: ClassVar[dict[str, object]] = {
+                    "nested": NestedSerializer,
+                }
+
+        class RootViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return RootSerializer
+
+        parameters = self.backend.get_schema_operation_parameters(RootViewSet())
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+
+        self.assertIn("nested", expand_enum)
+        self.assertIn("nested.leaf", expand_enum)
+
+    def test_get_schema_operation_parameters_limit_cyclic_expand_paths(self):
+        """Schema enum generation remains finite when expandable fields reference a cycle."""
+
+        class CyclicRootSerializer(FlexFieldsSerializerMixin):
+            class Meta:
+                fields = ["child"]
+                expandable_fields: ClassVar[dict[str, object]]
+
+        class CyclicChildSerializer(FlexFieldsSerializerMixin):
+            expandable_fields: ClassVar[dict[str, object]] = {
+                "parent": CyclicRootSerializer,
+            }
+
+            class Meta:
+                fields = ["parent"]
+
+        CyclicRootSerializer.Meta.expandable_fields = {
+            "child": CyclicChildSerializer,
+        }
+
+        class RootViewSet:
+            @staticmethod
+            def get_serializer_class():
+                return CyclicRootSerializer
+
+        parameters = self.backend.get_schema_operation_parameters(RootViewSet())
+
+        expand_parameter = next(p for p in parameters if p["name"] == EXPAND_PARAM)
+        expand_enum = expand_parameter["schema"]["items"]["enum"]
+
+        self.assertEqual(expand_enum[:2], ["child", "child.parent"])
+        self.assertEqual(expand_enum.count("child"), 1)
+        self.assertEqual(expand_enum.count("child.parent"), 1)
+
     def test_get_serializer_class_from_lazy_string_raises_for_invalid_path(self):
         """Invalid lazy serializer paths raise an exception in schema helper logic."""
         with self.assertRaises(Exception):
             self.backend._get_serializer_class_from_lazy_string("tests.missing.Serializer")
-
-    def test_import_serializer_class_returns_none_for_non_serializer(self):
-        """Import helper returns ``None`` when target class is not a serializer."""
-        result = self.backend._import_serializer_class("tests.testapp.models", "Pet")
-        self.assertIsNone(result)
 
     def test_get_fields_returns_empty_string_when_meta_fields_missing(self):
         """Schema field helper returns an empty string when ``Meta.fields`` is absent."""
@@ -452,7 +563,25 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
             class Meta:
                 pass
 
-        self.assertEqual(self.backend._get_fields(SerializerWithoutFields), "")
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithoutFields), "")
+
+    def test_get_fields_returns_empty_string_for_meta_fields_all(self):
+        """Schema field helper returns empty string for ``Meta.fields = "__all__"``."""
+
+        class SerializerWithAllFields:
+            class Meta:
+                fields = "__all__"
+
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithAllFields), "")
+
+    def test_get_fields_ignores_non_string_values_in_iterable_fields(self):
+        """Only string entries from iterable ``Meta.fields`` are joined for schema examples."""
+
+        class SerializerWithMixedFields:
+            class Meta:
+                fields = ["name", 1, None, "owner"]
+
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithMixedFields), "name,owner")
 
 
 class FlexFieldsFilterBackendOptionTests(TestCase):
@@ -477,9 +606,7 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = SimpleNamespace(**attrs)
         view.get_serializer_class = lambda: PetViewSet.serializer_class
         view.get_serializer_context = lambda: {"request": request}
-        view.get_serializer = lambda *args, **kwargs: PetViewSet.serializer_class(
-            *args, **kwargs
-        )
+        view.get_serializer = PetViewSet.serializer_class
         return view
 
     def test_filter_queryset_returns_unchanged_for_non_get(self):
@@ -505,7 +632,7 @@ class FlexFieldsFilterBackendOptionTests(TestCase):
         view = SimpleNamespace(
             get_serializer_class=lambda: PetStoreSerializer,
             get_serializer_context=lambda: {"request": request},
-            get_serializer=lambda *args, **kwargs: PetStoreSerializer(*args, **kwargs),
+            get_serializer=PetStoreSerializer,
         )
         queryset = Pet.objects.all()
 
