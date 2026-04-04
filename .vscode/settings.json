@@ -6,6 +6,6 @@
         "renovate.json5": "jsonc",
         ".renovaterc": "jsonc",
         ".renovaterc.json": "jsonc",
-        ".renovaterc.json5": "jsonc",
+        ".renovaterc.json5": "jsonc"
     }
 }
