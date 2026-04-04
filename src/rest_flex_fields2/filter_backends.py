@@ -68,7 +68,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
     @classmethod
     def _get_expandable_fields(
-        cls, serializer_class: Any, parents: list = [], prefix: str = ""
+        cls, serializer_class: Any, parents: tuple = (), prefix: str = ""
     ) -> list:
         """ Return a flat list of all expandable field paths for `serializer_class`.
 
@@ -109,7 +109,7 @@ class FlexFieldsDocsFilterBackend(BaseFilterBackend):
 
             expand_list += cls._get_expandable_fields(
                 serializer_class = nested_serializer_class,
-                parents          = parents + [serializer_class],
+                parents          = parents + (serializer_class,),
                 prefix           = f"{prefix}{key}.",
             )
 
