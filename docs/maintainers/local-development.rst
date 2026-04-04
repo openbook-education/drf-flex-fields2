@@ -8,8 +8,8 @@ Repository-level and external service setup remains in
 Prerequisites
 -------------
 
-- Python 3.12 or 3.13
-- Poetry
+- A supported Python version
+- Poetry package manager
 
 Install dependencies
 --------------------

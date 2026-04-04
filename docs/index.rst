@@ -65,6 +65,7 @@ Supported stack
 
    maintainers/local-development
    maintainers/development-process
+   maintainers/dependency-policy
    maintainers/architecture
    maintainers/repository-setup
    maintainers/versioning-and-releases

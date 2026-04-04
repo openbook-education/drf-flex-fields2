@@ -1,7 +1,7 @@
 name: "Setup CI environment"
 description: "Set up Python, Poetry, and optionally Node.js for CI workflows"
 
-inputs:   
+inputs:
     # ====== #
     # Python #
     # ====== #
