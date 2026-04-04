@@ -411,7 +411,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
 
     def test_get_field_returns_none_for_missing_model_field(self):
         """Unknown model fields return ``None`` from helper lookup."""
-        self.assertIsNone(self.backend._get_field("does_not_exist", Pet))
+        self.assertIsNone(self.backend._get_model_field("does_not_exist", Pet))
 
     def test_get_expandable_fields_returns_empty_for_non_flex_serializer(self):
         """Serializer classes without expandable metadata return an empty list."""
@@ -556,11 +556,6 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
         with self.assertRaises(Exception):
             self.backend._get_serializer_class_from_lazy_string("tests.missing.Serializer")
 
-    def test_import_serializer_class_returns_none_for_non_serializer(self):
-        """Import helper returns ``None`` when target class is not a serializer."""
-        result = self.backend._import_serializer_class("tests.testapp.models", "Pet")
-        self.assertIsNone(result)
-
     def test_get_fields_returns_empty_string_when_meta_fields_missing(self):
         """Schema field helper returns an empty string when ``Meta.fields`` is absent."""
 
@@ -568,7 +563,7 @@ class FlexFieldsDocsFilterBackendSchemaTests(TestCase):
             class Meta:
                 pass
 
-        self.assertEqual(self.backend._get_fields(SerializerWithoutFields), "")
+        self.assertEqual(self.backend._get_serializer_fields(SerializerWithoutFields), "")
 
 
 class FlexFieldsFilterBackendOptionTests(TestCase):

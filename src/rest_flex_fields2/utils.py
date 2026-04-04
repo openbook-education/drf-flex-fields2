@@ -56,8 +56,10 @@ def is_included(request, field: str) -> bool:
     return True
 
 
-def split_levels(fields):
-    """ Split a dot-notation field list into current-level and next-level parts.
+def split_levels(
+    fields: str | Iterable[str],
+) -> tuple[list[str], dict[str, list[str]]]:
+    """Split a dot-notation field list into current-level and next-level parts.
 
     Given an iterable such as ``['a', 'a.b', 'a.d', 'c']``, returns a
     tuple ``(first_level, next_level)`` where ``first_level`` is the
@@ -66,8 +68,8 @@ def split_levels(fields):
     fragments (e.g. ``{'a': ['b', 'd']}``).  A plain string is treated
     as a comma-separated field list.
     """
-    first_level_fields = []
-    next_level_fields = {}
+    first_level_fields: list[str] = []
+    next_level_fields: dict[str, list[str]] = {}
 
     if not fields:
         return first_level_fields, next_level_fields

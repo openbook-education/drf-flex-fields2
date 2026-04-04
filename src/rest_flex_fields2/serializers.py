@@ -44,7 +44,7 @@ class FlexFieldsSerializerMixin(Serializer):
         """Initialize flex-fields options from kwargs and request query params."""
         expand = list(kwargs.pop(EXPAND_PARAM, []))
         fields = list(kwargs.pop(FIELDS_PARAM, []))
-        omit = list(kwargs.pop(OMIT_PARAM, []))
+        omit   = list(kwargs.pop(OMIT_PARAM, []))
         parent = kwargs.pop("parent", None)
 
         super().__init__(*args, **kwargs)
@@ -56,17 +56,15 @@ class FlexFieldsSerializerMixin(Serializer):
         self._flex_options_base = {
             "expand": expand,
             "fields": fields,
-            "omit": omit,
+            "omit":   omit,
         }
+
         self._flex_options_rep_only = {
-            "expand": (
-                self._get_permitted_expands_from_query_param(EXPAND_PARAM)
-                if not expand
-                else []
-            ),
-            "fields": (self._get_query_param_value(FIELDS_PARAM) if not fields else []),
-            "omit": (self._get_query_param_value(OMIT_PARAM) if not omit else []),
+            "expand": self._get_permitted_expands_from_query_param(EXPAND_PARAM) if not expand else [],
+            "fields": self._get_query_param_value(FIELDS_PARAM) if not fields else [],
+            "omit":   self._get_query_param_value(OMIT_PARAM) if not omit else [],
         }
+
         self._flex_options_all = {
             "expand": self._flex_options_base["expand"] + self._flex_options_rep_only["expand"],
             "fields": self._flex_options_base["fields"] + self._flex_options_rep_only["fields"],
@@ -155,9 +153,7 @@ class FlexFieldsSerializerMixin(Serializer):
             settings = {}
 
         if isinstance(serializer_class, str):
-            serializer_class = self._get_serializer_class_from_lazy_string(
-                serializer_class
-            )
+            serializer_class = self._get_serializer_class_from_lazy_string(serializer_class)
 
         if issubclass(serializer_class, Serializer):
             settings["context"] = self.context
@@ -247,9 +243,7 @@ class FlexFieldsSerializerMixin(Serializer):
             return to_remove
 
         for field_name in current_fields:
-            should_exist = self._should_field_exist(
-                field_name, omit_fields, sparse_fields, next_level_omits
-            )
+            should_exist = self._should_field_exist(field_name, omit_fields, sparse_fields, next_level_omits)
 
             if not should_exist:
                 to_remove.append(field_name)
@@ -298,7 +292,7 @@ class FlexFieldsSerializerMixin(Serializer):
         if self._contains_wildcard_value(expand_fields):
             expand_fields = list(self._expandable_fields.keys())
 
-        accum = []
+        expanded_field_names = []
 
         for name in expand_fields:
             if name not in self._expandable_fields:
@@ -309,9 +303,9 @@ class FlexFieldsSerializerMixin(Serializer):
             ):
                 continue
 
-            accum.append(name)
+            expanded_field_names.append(name)
 
-        return accum
+        return expanded_field_names
 
     @property
     def _expandable_fields(self) -> dict:
@@ -385,6 +379,7 @@ class FlexFieldsSerializerMixin(Serializer):
         expansion_path = self._split_expand_field(expand_path)
         expansion_length = len(expansion_path)
         expansion_length_unique = len(set(expansion_path))
+
         if expansion_length != expansion_length_unique:
             self.recursive_expansion_not_permitted()
 
@@ -440,6 +435,7 @@ class FlexFieldsSerializerMixin(Serializer):
         """
         if WILDCARD_VALUES is None:
             return False
+
         intersecting_values = list(set(expand_values) & set(WILDCARD_VALUES))
         return len(intersecting_values) > 0
 
