@@ -6,7 +6,7 @@ unless the client explicitly asks for an expanded nested representation.
 
 .. code-block:: python
 
-   from rest_flex_fields2 import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
    class StateSerializer(FlexFieldsModelSerializer):

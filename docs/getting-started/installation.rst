@@ -18,7 +18,7 @@ Then subclass ``FlexFieldsModelSerializer`` in place of DRF's regular
 
 .. code-block:: python
 
-   from rest_flex_fields2 import FlexFieldsModelSerializer
+    from rest_flex_fields2.serializers import FlexFieldsModelSerializer
 
 
    class StateSerializer(FlexFieldsModelSerializer):

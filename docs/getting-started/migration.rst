@@ -41,8 +41,7 @@ Update Imports
 Replace all imports of ``rest_flex_fields`` with ``rest_flex_fields2`` throughout
 your codebase.
 
-If you imported symbols from the package root (for example,
-``from rest_flex_fields2 import FlexFieldsModelSerializer``), update those to
+If you imported symbols from the package root, update those to
 module-level imports instead. Package-level re-exports were removed to
 fix import cycles during Django initialization.
 

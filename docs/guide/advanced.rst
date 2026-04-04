@@ -152,7 +152,7 @@ Example view usage:
 
 .. code-block:: python
 
-   from rest_flex_fields2 import is_expanded
+  from rest_flex_fields2.utils import is_expanded
 
 
    class PersonViewSet(FlexFieldsModelViewSet):
