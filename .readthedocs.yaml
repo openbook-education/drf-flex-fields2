@@ -9,7 +9,6 @@ build:
             - pip install poetry
             - poetry config virtualenvs.create false
         install:
-            - $READTHEDOCS_VIRTUALENV_PATH/bin/activate
             - poetry install --no-interaction --with docs
 
 sphinx:
