@@ -5,11 +5,10 @@ build:
     tools:
         python: latest
     jobs:
-        post_create_environment:
-            - pip install poetry
-            - poetry config virtualenvs.create false
         install:
-            - . $READTHEDOCS_VIRTUALENV_PATH/bin/activate; \
+            - . $READTHEDOCS_VIRTUALENV_PATH/bin/activate;
+              pip install poetry;
+              poetry config virtualenvs.create false;
               poetry install --no-interaction --with docs
 
 sphinx:
