@@ -113,8 +113,8 @@ Release Checklist
 
    .. code-block:: bash
 
-     poetry config repositories.testpypi https://test.pypi.org/legacy/
-     poetry config pypi-token.testpypi <token>
+      poetry config repositories.testpypi https://test.pypi.org/legacy/
+      poetry config pypi-token.testpypi <token>
 
    Then packages can be published with:
 
