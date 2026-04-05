@@ -5,6 +5,8 @@ build:
     tools:
         python: latest
     jobs:
+        # Poetry requires special attention here, so that the dependencies are
+        # actually installed into the automatically created Python environment.
         install:
             - . $READTHEDOCS_VIRTUALENV_PATH/bin/activate;
               pip install poetry;
