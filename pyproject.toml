@@ -1,12 +1,12 @@
 [tool.poetry]
 name = "drf-flex-fields2"
-version = "2.0.0-pre1"
+version = "2.0.0"
 description = "Flexible, dynamic fields and nested resources for Django REST Framework serializers (forked from drf-flex-fields)."
 authors = ["Robert Singer", "Dennis Schulmeister-Zimolong"]
 maintainers = ["Dennis Schulmeister-Zimolong"]
 license = "MIT"
 readme = "README.md"
-homepage = "https://drf-flex-fields2.readthedocs.io/en/latest/"
+homepage = "https://drf-flex-fields2.readthedocs.io/en/stable/"
 repository = "https://github.com/openbook-education/drf-flex-fields2"
 keywords = ["django", "rest", "api", "dynamic", "fields"]
 packages = [{ include = "rest_flex_fields2", from = "src" }]
