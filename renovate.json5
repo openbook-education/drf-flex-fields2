@@ -14,7 +14,7 @@
     "enabledManagers": ["github-actions", "poetry"],
     "labels": ["dependencies", "automated"],
     "configMigration": true,
-    "prConcurrentLimit": 5,
+    "prConcurrentLimit": 10,
     "prHourlyLimit": 2,
     "rebaseWhen": "behind-base-branch",
     "lockFileMaintenance": {
@@ -35,7 +35,8 @@
             "description": "Library strategy: widen version ranges instead of bumping minimums",
             "matchManagers": ["poetry"],
             "rangeStrategy": "widen",
-            "allowedVersions": ">={{sub major 1}}"
+            "allowedVersions": ">={{sub major 1}}",
+            "groupName": "runtime dependencies"
         },
         {
             // NOTE: To reduce noise, this combines non-runtime dependencies into a single PR.
@@ -43,7 +44,7 @@
             // For all other dependencies we keep the one PR per dependency / widen range logic.
             "description": "Group development and documentation dependencies",
             "matchManagers": ["poetry"],
-            "excludeDepTypes": ["dependencies"],
+            "matchDepTypes": ["!dependencies"],
             "groupName": "non-runtime dependencies",
             "rangeStrategy": "bump"
         },
@@ -64,7 +65,6 @@
         {
             "description": "Django REST Framework is not semver-safe (minor/patch may break)",
             "matchPackageNames": ["djangorestframework"],
-            "allowedVersions": ">={{sub minor 3}}",
             "matchUpdateTypes": ["minor", "patch"],
             "automerge": false,
             "platformAutomerge": false,
