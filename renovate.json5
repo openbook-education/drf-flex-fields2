@@ -36,7 +36,7 @@
             "matchManagers": ["poetry"],
             "rangeStrategy": "widen",
             "allowedVersions": ">={{sub major 1}}",
-            "group": "runtime dependencies"
+            "groupName": "runtime dependencies"
         },
         {
             // NOTE: To reduce noise, this combines non-runtime dependencies into a single PR.
