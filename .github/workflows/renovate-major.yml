@@ -36,4 +36,4 @@ jobs:
                   # 2026-04-12: Workaround for Poetry lock file not updated reliably. Inside the Renovate
                   # config, a post-upgrade task is used to manually delete and regenerate the lock file.
                   # Otherwise, tests during the PR checks might fail.
-                  RENOVATE_ALLOWED_COMMANDS: '["echo [[Recreate Poetry lock file]]", "rm poetry.lock", "poetry lock"]'
+                  RENOVATE_ALLOWED_COMMANDS: '["echo [[Recreate Poetry lock file]]", "rm -f poetry.lock", "poetry lock"]'

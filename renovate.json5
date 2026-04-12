@@ -28,7 +28,7 @@
     // changes made by Renovate, we manually delete and regenerate the lock file. Note, that the
     // commands must be whitelisted in the CI workflows via env variables.
     "postUpgradeTasks": {
-        "commands": ["echo [[Recreate Poetry lock file]]", "rm poetry.lock", "poetry lock"],
+        "commands": ["echo [[Recreate Poetry lock file]]", "rm -f poetry.lock", "poetry lock"],
         "executionMode": "branch"
     },
 
