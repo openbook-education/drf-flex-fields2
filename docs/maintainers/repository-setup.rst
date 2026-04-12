@@ -14,7 +14,7 @@ Repository Secrets
 ------------------
 
 Under **Settings → Secrets and variables → Actions**, the following repository
-secret was created:
+secrets were created:
 
 .. list-table::
    :header-rows: 1
@@ -24,10 +24,17 @@ secret was created:
      - Description
    * - ``RENOVATE_TOKEN``
      - Fine-grained personal access token for Renovate and SBOM automation.
+   * - ``POETRY_PYPI_TOKEN_PYPI``
+     - PyPI API token used by the automated release workflow when publishing.
 
 ``RENOVATE_TOKEN`` was configured so Renovate and related SBOM automation could
 open pull requests and merge auto-mergeable dependency updates after checks
 passed.
+
+``POETRY_PYPI_TOKEN_PYPI`` must contain a PyPI token with permission to upload
+new releases for ``drf-flex-fields2``. The release workflow passes it straight
+through to Poetry, which reads the value from the standard
+``POETRY_PYPI_TOKEN_PYPI`` environment variable.
 
 The token belongs to a user with write access to the repository and has the
 following permissions:
@@ -60,6 +67,18 @@ Automatically request a Copilot code review
 
 Under **Settings → General → Pull Requests**, *Automatically request Copilot
 code review* was enabled.
+
+Allow release automation to push
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The release workflow reuses ``RENOVATE_TOKEN`` for the checkout step. Because
+that token belongs to a maintainer account that already has bypass rights on
+the default-branch ruleset, the automated release commit and ``vX.Y.Z`` tag
+can be pushed directly without any additional ruleset configuration.
+
+No separate bypass entry for GitHub Actions is required. The ``GITHUB_TOKEN``
+that GitHub Actions provides by default does not have ruleset bypass rights on
+the free plan, which is why the personal access token is used instead.
 
 Read the Docs Project Settings
 ------------------------------
@@ -118,6 +137,13 @@ Release, Tagging, and Publishing
 
 The release process was standardized as follows to keep the package and
 documentation in sync:
+
+- Dependency-only updates merged from Renovate pull requests labeled
+  ``minor-update`` trigger ``.github/workflows/release-new-version.yml``.
+  That workflow bumps the patch version in ``pyproject.toml``, creates a
+  ``vX.Y.Z`` tag, pushes both to GitHub, and runs ``poetry publish --build``.
+- Manual releases remain available for feature work, documentation-driven
+  releases, or any change that requires a deliberate version choice.
 
 1. The version in ``pyproject.toml`` was updated, for example with
    ``poetry version patch`` or ``poetry version 2.1.0``.

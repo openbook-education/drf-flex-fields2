@@ -30,8 +30,8 @@ version of 2 to reflect the modernized tooling, updated minimum requirements
 (Django 6, DRF 3.17), and forked lineage — not because any user-facing API was
 broken, except for the name change.
 
-Release Checklist
------------------
+Manual Release Checklist
+------------------------
 
 1. **Ensure main is green.**
 
@@ -61,7 +61,7 @@ Release Checklist
 
    .. code-block:: bash
 
-      # choose one of: patch, minor, major
+      # Choose between patch, minor or major
       poetry version minor
 
 7. **Commit the version bump:**
@@ -130,6 +130,22 @@ Release Checklist
 
       pip install --upgrade drf-flex-fields2
       python -c "import importlib.metadata as im; print(im.version('drf-flex-fields2'))"
+
+.. hint::
+
+   There is a GitHub Actions workflow to support this process. The workflow can be used
+   to bump the version number and tag the commit (in one step) and then, in a second run,
+   to finally build and publish the package. The workflow doesn't create an issue, branch
+   or pull request. But the workflow can be run with a branch that has been created before.
+
+Automated Dependency Releases
+-----------------------------
+
+Merged Renovate pull requests labeled ``minor-update`` are released
+automatically by ``.github/workflows/release-new-version.yml`` when they
+land on the default branch. The workflow bumps the patch number and
+generally follows the procedure described above to tag and publish
+a maintenance release with updated dependency versions.
 
 Read the Docs
 -------------

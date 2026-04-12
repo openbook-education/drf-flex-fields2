@@ -34,12 +34,14 @@ jobs:
         steps:
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                fetch-depth: 0
 
             - name: "Set up CI environment"
               uses: ./.github/actions/setup-ci-environment
               with:
-                  setup-python: "true"
-                  python-version: "3.13"
+                setup-python: "true"
+                python-version: "3.13"
 
             - name: "Install documentation dependencies"
               run: poetry install --no-interaction --with docs

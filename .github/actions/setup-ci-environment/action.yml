@@ -20,6 +20,14 @@ inputs:
         required: false
         default: "latest"
 
+    # === #
+    # Git #
+    # === #
+    configure-git-author:
+        description: "Whether to configure the Git author as the github-actions bot"
+        required: false
+        default: "false"
+
 runs:
     using: "composite"
     steps:
@@ -48,3 +56,13 @@ runs:
             poetry lock
             poetry install --no-interaction --no-root --with dev
           shell: bash
+
+        # === #
+        # Git #
+        # === #
+        - name: "Configure Git author"
+          if: ${{ inputs.configure-git-author == 'true' }}
+          shell: bash
+          run: |
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

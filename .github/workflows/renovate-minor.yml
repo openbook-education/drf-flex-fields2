@@ -18,8 +18,6 @@ jobs:
         steps:
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-              with:
-                  ref: ${{ github.event.repository.default_branch }}
 
             - name: "Run Renovate"
               uses: renovatebot/github-action@b67590ea780158ccd13192c22a3655a5231f869d # v46.1.8

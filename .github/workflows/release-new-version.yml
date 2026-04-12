@@ -1,0 +1,123 @@
+name: "Release After Renovate Minor Merge"
+
+on:
+    workflow_dispatch:
+        inputs:
+            mode:
+                description: "Manual run mode"
+                type: choice
+                required: true
+                default: bump-only
+                options:
+                    - bump-only
+                    - publish-only
+            bump:
+                description: "Version part to bump"
+                type: choice
+                required: true
+                default: patch
+                options:
+                    - patch
+                    - minor
+                    - major
+    pull_request:
+        types:
+            - closed
+
+permissions:
+    contents: read
+
+concurrency:
+    group: "release-renovate-minor-${{ github.event.pull_request.number || github.run_id }}"
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: "Bump version, tag, and publish"
+        if: >-
+            ${{
+                github.event_name == 'workflow_dispatch' || (
+                    github.event.pull_request.merged == true &&
+                    github.event.pull_request.base.ref == github.event.repository.default_branch &&
+                    contains(github.event.pull_request.labels.*.name, 'minor-update') && (
+                        github.event.pull_request.user.login == 'renovate[bot]' ||
+                        startsWith(github.event.pull_request.head.ref, 'renovate/')
+                    )
+                )
+            }}
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: "Checkout code"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  token: ${{ secrets.RENOVATE_TOKEN }}
+
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
+              with:
+                  setup-python: "true"
+                  configure-git-author: "true"
+
+            - name: "Ensure PyPI token is configured"
+              if: >-
+                  ${{
+                      github.event_name != 'workflow_dispatch' ||
+                      github.event.inputs.mode == 'publish-only'
+                  }}
+              env:
+                  POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
+              shell: bash
+              run: |
+                  if [[ -z "$POETRY_PYPI_TOKEN_PYPI" ]]; then
+                      echo "Repository secret POETRY_PYPI_TOKEN_PYPI is not configured."
+                      exit 1
+                  fi
+
+            - name: "Bump version, commit, and tag release"
+              id: version
+              if: >-
+                  ${{
+                      github.event_name != 'workflow_dispatch' ||
+                      github.event.inputs.mode == 'bump-only'
+                  }}
+              shell: bash
+              run: |
+                  if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+                      bump_part="${{ github.event.inputs.bump }}"
+                  else
+                      bump_part="patch"
+                  fi
+
+                  previous_version="$(poetry version --short)"
+                  poetry version "$bump_part"
+                  new_version="$(poetry version --short)"
+                  release_tag="v${new_version}"
+
+                  if git rev-parse "$release_tag" >/dev/null 2>&1; then
+                      echo "Tag $release_tag already exists."
+                      exit 1
+                  fi
+
+                  echo "previous=$previous_version" >> "$GITHUB_OUTPUT"
+                  echo "new=$new_version" >> "$GITHUB_OUTPUT"
+                  echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
+
+                  git add pyproject.toml
+                  git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
+                  git tag "${{ steps.version.outputs.tag }}"
+
+                  git push origin "HEAD:${{ github.event.repository.default_branch }}"
+                  git push origin "${{ steps.version.outputs.tag }}"
+
+            - name: "Build and publish package"
+              if: >-
+                  ${{
+                      github.event_name != 'workflow_dispatch' ||
+                      github.event.inputs.mode == 'publish-only'
+                  }}
+              env:
+                  POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
+              shell: bash
+              run: |
+                  poetry publish --build
