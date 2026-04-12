@@ -21,7 +21,7 @@
         "enabled": true,
         "automerge": true,
         "platformAutomerge": true,
-        "addLabels": "lockfile-update"
+        "addLabels": ["lockfile-update"]
     },
 
     // 2026-04-01: Workaround for Poetry lock files not reliably updated. Before committing the
