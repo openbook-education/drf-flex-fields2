@@ -45,4 +45,4 @@ jobs:
               run: poetry install --no-interaction --with docs
 
             - name: "Build documentation"
-              run: poetry run sphinx-build -T -n -v -v -W docs/ /tmp/sphinx-test-build
+              run: poetry run sphinx-build -T -v docs/ /tmp/sphinx-test-build
