@@ -20,14 +20,15 @@
     "lockFileMaintenance": {
         "enabled": true,
         "automerge": true,
-        "platformAutomerge": true
+        "platformAutomerge": true,
+        "addLabels": "lockfile-update"
     },
 
     // 2026-04-01: Workaround for Poetry lock files not reliably updated. Before committing the
     // changes made by Renovate, we manually delete and regenerate the lock file. Note, that the
     // commands must be whitelisted in the CI workflows via env variables.
     "postUpgradeTasks": {
-        "commands": ["rm poetry.lock", "poetry lock"],
+        "commands": ["echo >> Manually recreating Poetry lock file", "rm poetry.lock", "poetry lock"],
         "executionMode": "branch"
     },
 
