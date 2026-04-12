@@ -39,10 +39,15 @@ jobs:
               uses: ./.github/actions/setup-ci-environment
               with:
                   setup-python: "true"
-                  python-version: "3.13"
 
             - name: "Install documentation dependencies"
               run: poetry install --no-interaction --with docs
 
+            # Sphinx options:
+            #   -W Treat warnings as errors (to catch broken references)
+            #   -T Print tracebacks
+            #   -v Verbose output (-v -v even more verbose)
+            #
+            # Deliberately not included is --keep-going, because it may swallow errors.
             - name: "Build documentation"
-              run: poetry run sphinx-build -W --keep-going docs/ /tmp/sphinx-test-build
+              run: poetry run sphinx-build -W -T -v docs/ /tmp/sphinx-test-build

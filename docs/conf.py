@@ -18,6 +18,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
+    "sphinx_llm.txt",
 ]
 
 autoapi_dirs = ["../src/rest_flex_fields2"]

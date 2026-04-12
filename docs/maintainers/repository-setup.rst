@@ -108,7 +108,7 @@ Documentation was built locally with:
 
 .. code-block:: bash
 
-  poetry run sphinx-build -W --keep-going docs/ /tmp/sphinx-test-build
+  poetry run sphinx-build -W -T -v docs/ /tmp/sphinx-test-build
 
 The ``docs/`` directory was established as the canonical documentation source
 location.

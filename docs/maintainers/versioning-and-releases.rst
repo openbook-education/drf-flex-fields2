@@ -26,9 +26,9 @@ Version Baseline
 
 Version **2.0.0** of ``drf-flex-fields2`` is feature-equivalent to version
 **1.0.2** of the original ``drf-flex-fields`` package. It carries a major
-version of 2 to reflect the modernized tooling, updated minimum requirements
-(Django 6, DRF 3.17), and forked lineage — not because any user-facing API was
-broken, except for the name change.
+version of 2 to reflect the modernized tooling, updated minimum requirements,
+and forked lineage — not because the user-facing API was broken, except for
+import path changes.
 
 Release Checklist
 -----------------
