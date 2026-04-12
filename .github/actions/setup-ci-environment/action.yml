@@ -41,5 +41,10 @@ runs:
 
         - name: "Install Python dependencies"
           if: ${{ inputs.setup-python == 'true' }}
-          run: poetry install --no-interaction --no-root --with dev
+          # Floating poetry version can trigger "lockfile too old". As a workaround (since Poetry
+          # versions locally in CI can always differ), we run `poetry lock` to regenerate it.
+          run: |-
+            rm -f poetry.lock
+            poetry lock
+            poetry install --no-interaction --no-root --with dev
           shell: bash

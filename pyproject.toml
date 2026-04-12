@@ -18,7 +18,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4"
-django = ">=6,<=6.0.4"
+django = ">=5.0,<=6.0.0"
 djangorestframework = ">=3.14.0,<3.17.1"
 
 [tool.poetry.group.docs.dependencies]
