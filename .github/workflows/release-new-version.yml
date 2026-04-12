@@ -104,11 +104,11 @@ jobs:
                   echo "tag=$release_tag" >> "$GITHUB_OUTPUT"
 
                   git add pyproject.toml
-                  git commit -m "chore(release): ${{ steps.version.outputs.tag }}"
-                  git tag "${{ steps.version.outputs.tag }}"
+                  git commit -m "chore(release): $release_tag"
+                  git tag "$release_tag"
 
                   git push origin "HEAD:${{ github.event.repository.default_branch }}"
-                  git push origin "${{ steps.version.outputs.tag }}"
+                  git push origin "$release_tag"
 
             - name: "Build and publish package"
               if: >-
