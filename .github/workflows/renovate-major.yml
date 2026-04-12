@@ -32,8 +32,3 @@ jobs:
                   RENOVATE_GIT_AUTHOR: "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
                   RENOVATE_PACKAGE_RULES: '[{"matchUpdateTypes":["digest","minor","patch","pin","pinDigest","lockFileMaintenance"],"enabled":false}]'
                   RENOVATE_REPOSITORIES: ${{ github.repository }}
-
-                  # 2026-04-12: Workaround for Poetry lock file not updated reliably. Inside the Renovate
-                  # config, a post-upgrade task is used to manually delete and regenerate the lock file.
-                  # Otherwise, tests during the PR checks might fail.
-                  RENOVATE_ALLOWED_COMMANDS: '["echo [[Recreate Poetry lock file]]", "rm -f poetry.lock", "poetry lock"]'
