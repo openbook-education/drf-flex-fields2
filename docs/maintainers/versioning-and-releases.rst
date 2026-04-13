@@ -134,10 +134,17 @@ Manual Release Checklist
 .. hint::
 
    There is a GitHub Actions workflow to support this process. The workflow can be used
-   to bump the version number and tag the commit (in one step) and then, in a second run,
-   to finally build and publish the package. The workflow doesn't create an issue, branch
-   or pull request, so it must be run for the default branch release process rather than
-   from a pre-created release branch.
+   to bump the version number and tag the commit (in one step) and then to finally build
+   and publish the package. When run on the default branch the pacakge will be automatically
+   deployed to PyPi. On a release-prep branch, the package will contain ``-rc.N`` version
+   suffix and will be published on PyPi Test.
+
+.. warning::
+
+   Prefer running the workflow on a release-preb branch created from an issue as described
+   above. Once the new version is been successfully buit, tested and published on PyPi Test,
+   merge all changes into the default branch and rerun this workflow to publish the final
+   version (without `-rc.N` suffix) on PyPi Production.
 
 Automated Dependency Releases
 -----------------------------
