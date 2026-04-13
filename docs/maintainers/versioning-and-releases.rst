@@ -137,7 +137,7 @@ Manual Release Checklist
    to bump the version number and tag the commit (in one step) and then to finally build
    and publish the package. When run on the default branch the package will be automatically
    deployed to PyPI. On a release-prep branch, the package will contain ``-rc.N`` version
-   suffix and will be published on TestPyPI.
+   suffix and will be published on PyPI Test.
 
 .. warning::
 
@@ -160,7 +160,7 @@ workflows:
 - **Manual dispatch on the default branch:** Bumps the version (patch, minor, or major)
   and publishes directly to PyPI.
 - **Manual dispatch on a non-default branch:** Bumps the version, adds an ``-rc.N``
-  pre-release suffix (e.g., ``1.0.1-rc.1``), and publishes to TestPyPI instead
+  pre-release suffix (e.g., ``1.0.1-rc.1``), and publishes to PyPI Test instead
   of PyPI. This allows testing release artifacts before final publication.
 
 The ``-rc.N`` counter increments automatically if that tag already exists,

@@ -147,10 +147,10 @@ jobs:
                   git push origin "HEAD:${{ steps.target-branch.outputs.target_branch }}"
                   git push origin "$release_tag"
 
-            - name: "Build and publish package to TestPyPI"
+            - name: "Build and publish package to PyPI Test"
               if: ${{ steps.target-branch.outputs.is_default_branch != 'true' }}
               env:
-                  POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
+                  POETRY_PYPI_TOKEN_TEST: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
               shell: bash
               run: |
                   poetry config repositories.testpypi https://test.pypi.org/legacy/

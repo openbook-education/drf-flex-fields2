@@ -27,7 +27,7 @@ secrets were created:
    * - ``POETRY_PYPI_TOKEN_PYPI``
      - PyPI API token used by the automated release workflow when publishing to PyPI.
    * - ``POETRY_PYPI_TOKEN_TESTPYPI``
-     - TestPyPI API token used by the automated release workflow when testing releases on non-default branches.
+     - PyPI Test API token used by the automated release workflow when testing releases on non-default branches.
 
 ``RENOVATE_TOKEN`` was configured so Renovate and related SBOM automation could
 open pull requests and merge auto-mergeable dependency updates after checks
@@ -46,7 +46,7 @@ belongs to a user with write access to the repository.
 pre-release versions. The release workflow uses this token when the workflow is
 manually dispatched from a non-default branch (e.g., a release-prep branch),
 allowing dry-run releases with ``-rc.N`` version suffixes before final
-publication. This token should have permission to upload to the TestPyPI
+publication. This token should have permission to upload to the PyPI Test
 repository at ``https://test.pypi.org/legacy/``.
 
 Branch Protection Rules
