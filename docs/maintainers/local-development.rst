@@ -61,7 +61,15 @@ Build documentation
 
 .. code-block:: bash
 
-   poetry run sphinx-build -W --keep-going docs/ site/
+   poetry run sphinx-build -W -T -v docs/ site/
+
+What these options do:
+
+- ``-W``: Treat warnings as errors (to catch broken references)
+- ``-T``: Print tracebacks
+- ``-v``: Verbose output (-v -v even more verbose)
+
+Deliberately not included is ``--keep-going``, because it may swallow errors.
 
 Common maintenance commands
 ---------------------------
