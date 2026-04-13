@@ -77,14 +77,17 @@ jobs:
 
             - name: "Ensure PyPI token is configured"
               shell: bash
+              env:
+                  POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
+                  POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
               run: |
                   if [[ "${{ steps.target-branch.outputs.is_default_branch }}" == "true" ]]; then
-                      if [[ -z "${{ secrets.POETRY_PYPI_TOKEN_PYPI }}" ]]; then
+                      if [[ -z "$POETRY_PYPI_TOKEN_PYPI" ]]; then
                           echo "Repository secret POETRY_PYPI_TOKEN_PYPI is not configured."
                           exit 1
                       fi
                   else
-                      if [[ -z "${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}" ]]; then
+                      if [[ -z "$POETRY_PYPI_TOKEN_TESTPYPI" ]]; then
                           echo "Repository secret POETRY_PYPI_TOKEN_TESTPYPI is not configured."
                           exit 1
                       fi
