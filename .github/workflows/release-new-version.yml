@@ -101,17 +101,23 @@ jobs:
                   fi
 
                   previous_version="$(poetry version --short)"
-                  poetry version "$bump_part"
-                  new_version="$(poetry version --short)"
 
-                  # Add -rc.N suffix if not on default branch
-                  if [[ "${{ steps.target-branch.outputs.is_default_branch }}" != "true" ]]; then
-                      rc_num=1
-                      while git rev-parse "v${new_version}-rc.${rc_num}" >/dev/null 2>&1; do
-                          ((rc_num++))
-                      done
-                      new_version="${new_version}-rc.${rc_num}"
-                      poetry version "${new_version}"
+                  if [[ "${{ steps.target-branch.outputs.is_default_branch }}" == "true" ]] && [[ "$previous_version" =~ ^([0-9]+\.[0-9]+\.[0-9]+)-rc\.[0-9]+$ ]]; then
+                      new_version="${BASH_REMATCH[1]}"
+                      poetry version "$new_version"
+                  else
+                      poetry version "$bump_part"
+                      new_version="$(poetry version --short)"
+
+                      # Add -rc.N suffix if not on default branch
+                      if [[ "${{ steps.target-branch.outputs.is_default_branch }}" != "true" ]]; then
+                          rc_num=1
+                          while git rev-parse "v${new_version}-rc.${rc_num}" >/dev/null 2>&1; do
+                              ((rc_num++))
+                          done
+                          new_version="${new_version}-rc.${rc_num}"
+                          poetry version "${new_version}"
+                      fi
                   fi
 
                   release_tag="v${new_version}"
