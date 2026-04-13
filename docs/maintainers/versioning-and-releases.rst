@@ -141,10 +141,10 @@ Manual Release Checklist
 
 .. warning::
 
-   Prefer running the workflow on a release-preb branch created from an issue as described
-   above. Once the new version is been successfully buit, tested and published on TestPyPI,
+   Prefer running the workflow on a release-prep branch created from an issue as described
+   above. Once the new version has been successfully built, tested and published on PyPI Test,
    merge all changes into the default branch and rerun this workflow to publish the final
-   version (without `-rc.N` suffix) on PyPI.
+   version (without ``-rc.N`` suffix) on PyPI.
 
 Automated Dependency Releases
 -----------------------------
