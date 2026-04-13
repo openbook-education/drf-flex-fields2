@@ -22,17 +22,18 @@ secrets were created:
 
    * - Secret name
      - Description
-   * - ``RENOVATE_TOKEN``
-     - Fine-grained personal access token for Renovate and SBOM automation.
+   * - ``BOT_TOKEN``
+     - Fine-grained personal access token for Renovate, SBOM automation, and release workflows.
    * - ``POETRY_PYPI_TOKEN_PYPI``
      - PyPI API token used by the automated release workflow when publishing to PyPI.
    * - ``POETRY_PYPI_TOKEN_TESTPYPI``
      - PyPI Test API token used by the automated release workflow when testing releases on non-default branches.
 
-``RENOVATE_TOKEN`` was configured so Renovate and related SBOM automation could
-open pull requests and merge auto-mergeable dependency updates after checks
-passed. The token belongs to a user with write access to the repository and the
-following permissions:
+``BOT_TOKEN`` was configured so Renovate, SBOM automation, and the release
+workflow could open pull requests, merge auto-mergeable updates after checks
+passed, and bypass branch protection rules. The token belongs to a machine
+user account or bot with write access to the repository and the following
+permissions:
 
 - Read access to metadata
 - Read/write access to code, issues, pull requests, and workflows.
@@ -75,13 +76,14 @@ Automatically request a Copilot code review
 Under **Settings → General → Pull Requests**, *Automatically request Copilot
 code review* was enabled.
 
-Allow release automation to push
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Allow automation workflows to push and open pull requests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The release workflow reuses ``RENOVATE_TOKEN`` for the checkout step. Because
-that token belongs to a maintainer account that already has bypass rights on
-the default-branch ruleset, the automated release commit and ``vX.Y.Z`` tag
-can be pushed directly without any additional ruleset configuration.
+The release workflow and SBOM refresh automation both use ``BOT_TOKEN`` for
+repository operations. Because that token belongs to a machine user account
+that already has bypass rights on the default-branch ruleset, both workflows
+can push commits and open/merge pull requests without additional ruleset
+configuration.
 
 No separate bypass entry for GitHub Actions is required. The ``GITHUB_TOKEN``
 that GitHub Actions provides by default does not have ruleset bypass rights on

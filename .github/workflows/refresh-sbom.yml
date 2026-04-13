@@ -96,14 +96,14 @@ jobs:
                   mkdir -p sbom
                   poetry run cyclonedx-py poetry --output-file sbom/drf-flex-fields2.cyclonedx.json --of JSON
 
-                        - name: "Upload SBOM artifact"
-                            uses: actions/upload-artifact@v4
-                            with:
-                                    name: sbom-refresh-input
-                                    path: |
-                                            sbom/drf-flex-fields2.cyclonedx.json
-                                            poetry.lock
-                                    if-no-files-found: error
+            - name: "Upload SBOM artifact"
+              uses: actions/upload-artifact@v4
+              with:
+                  name: sbom-refresh-input
+                  path: |
+                      sbom/drf-flex-fields2.cyclonedx.json
+                      poetry.lock
+                  if-no-files-found: error
 
     # Privileged job: does not run project build scripts; it only validates the
     # artifact from the first job and performs the write-scoped update.
@@ -115,6 +115,7 @@ jobs:
         permissions:
             actions: read
             contents: write
+            pull-requests: write
 
         steps:
             - name: "Download SBOM artifact"
@@ -161,11 +162,11 @@ jobs:
               run: |
                   mkdir -p sbom
                   cp "sbom-refresh-input/sbom/drf-flex-fields2.cyclonedx.json" "sbom/drf-flex-fields2.cyclonedx.json"
-                                    cp "sbom-refresh-input/poetry.lock" "poetry.lock"
+                  cp "sbom-refresh-input/poetry.lock" "poetry.lock"
 
-            - name: "Commit and push SBOM update"
+            - name: "Commit SBOM changes and create or update pull request"
               env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
                   BASE_BRANCH: ${{ needs.generate-sbom-artifact.outputs.base_branch }}
               shell: bash
               run: |
@@ -176,10 +177,65 @@ jobs:
                       exit 0
                   fi
 
+                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
+                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
+                  COMMIT_MESSAGE="chore(sbom): regenerate project sbom"
+                  PR_TITLE="chore(sbom): refresh project SBOM"
+
+                  git checkout -B "$BRANCH_NAME"
                   git add sbom/drf-flex-fields2.cyclonedx.json poetry.lock
-                  git commit -m "chore(sbom): regenerate project sbom"
+                  git commit -m "$COMMIT_MESSAGE"
 
                   # Configure git auth only in the privileged job; the build job
                   # never runs with write-capable git credentials.
-                  gh auth setup-git
-                  git push origin "HEAD:$BASE_BRANCH"
+                  gh auth login --with-token <<< "$BOT_TOKEN"
+                  git push --force-with-lease origin "$BRANCH_NAME"
+
+                  PR_BODY="Automated refresh of sbom/ and poetry.lock files."
+
+                  PR_NUMBER="$(
+                      gh pr list \
+                          --head "$BRANCH_NAME" \
+                          --base "$BASE_BRANCH" \
+                          --state open \
+                          --json number \
+                          --jq '.[0].number'
+                  )"
+
+                  if [[ -z "$PR_NUMBER" ]]; then
+                      gh pr create \
+                          --title "$PR_TITLE" \
+                          --body "$PR_BODY" \
+                          --base "$BASE_BRANCH" \
+                          --head "$BRANCH_NAME"
+                  else
+                      gh pr edit "$PR_NUMBER" \
+                          --title "$PR_TITLE" \
+                          --body "$PR_BODY"
+                  fi
+
+            - name: "Enable auto-merge for SBOM PR"
+              env:
+                  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+                  BASE_BRANCH: ${{ needs.generate-sbom-artifact.outputs.base_branch }}
+              shell: bash
+              run: |
+                  gh auth login --with-token <<< "$BOT_TOKEN"
+                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
+                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
+
+                  PR_NUMBER="$(
+                      gh pr list \
+                          --head "$BRANCH_NAME" \
+                          --base "$BASE_BRANCH" \
+                          --state open \
+                          --json number \
+                          --jq '.[0].number'
+                  )"
+
+                  if [[ -n "$PR_NUMBER" ]]; then
+                      gh pr merge "$PR_NUMBER" \
+                          --auto \
+                          --squash \
+                          --delete-branch
+                  fi
