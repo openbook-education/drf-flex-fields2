@@ -1,17 +1,6 @@
 name: "Refresh Project SBOM"
 
 on:
-    workflow_dispatch:
-        inputs:
-            reason:
-                description: "Reason for manual SBOM refresh"
-                required: false
-                default: "manual-dispatch"
-                type: choice
-                options:
-                    - "manual-dispatch"
-                    - "pre-release"
-                    - "other"
     schedule:
         - cron: "42 5 * * 1"
     workflow_run:
@@ -21,77 +10,85 @@ on:
         types:
             - completed
 
-permissions:
-    contents: write
-    pull-requests: write
+permissions: {}
 
 concurrency:
     group: "refresh-sbom"
     cancel-in-progress: false
 
+# This workflow preserves a trust boundary between two jobs:
+#
+# - generate-sbom-artifact checks out repository code and runs project-
+#   controlled build tooling to produce the SBOM. Because a tampered build
+#   script or Poetry plugin could execute arbitrary commands, this job stays
+#   read-only and never receives write-capable repository credentials.
+#
+# - update-sbom consumes only the generated artifact, validates it, checks out
+#   the trusted target branch, and performs the privileged git push. This keeps
+#   write-scoped git or gh commands out of the job that executes project code.
 jobs:
-    refresh-sbom:
-        name: "Refresh project SBOM"
+    # Unprivileged job: executes project-controlled code and build tooling, so
+    # it is limited to read-only repository access.
+    generate-sbom-artifact:
+        name: "Generate SBOM artifact"
         if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
         runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        outputs:
+            base_branch: ${{ steps.target-branch.outputs.base_branch }}
 
         steps:
-            - name: "Validate manual dispatch reference"
-              if: ${{ github.event_name == 'workflow_dispatch' }}
-              shell: bash
-              run: |
-                  if [[ "${{ github.ref_type }}" != "branch" ]]; then
-                      echo "Manual dispatch must be started from a branch ref, not '${{ github.ref_type }}'."
-                      exit 1
-                  fi
-
-            - name: "Determine trigger context"
-              id: trigger-context
+            - name: "Determine target branch"
+              id: target-branch
               shell: bash
               env:
                   EVENT_NAME: ${{ github.event_name }}
-                  WORKFLOW_RUN_NAME: ${{ github.event.workflow_run.name }}
                   WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
                   DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-                  INPUT_REASON: ${{ inputs.reason }}
-                  REF_NAME: ${{ github.ref_name }}
               run: |
                   case "$EVENT_NAME" in
                       workflow_run)
-                          echo "reason=after-$WORKFLOW_RUN_NAME" >> "$GITHUB_OUTPUT"
-                          echo "base_branch=$WORKFLOW_RUN_HEAD_BRANCH" >> "$GITHUB_OUTPUT"
+                          BASE_BRANCH="$WORKFLOW_RUN_HEAD_BRANCH"
                           ;;
                       schedule)
-                          echo "reason=weekly-schedule" >> "$GITHUB_OUTPUT"
-                          echo "base_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
-                          ;;
-                      workflow_dispatch)
-                          if [[ -n "$INPUT_REASON" ]]; then
-                              echo "reason=$INPUT_REASON" >> "$GITHUB_OUTPUT"
-                          else
-                              echo "reason=manual-dispatch" >> "$GITHUB_OUTPUT"
-                          fi
-
-                          echo "base_branch=$REF_NAME" >> "$GITHUB_OUTPUT"
+                          BASE_BRANCH="$DEFAULT_BRANCH"
                           ;;
                       *)
-                          echo "reason=unknown-trigger" >> "$GITHUB_OUTPUT"
-                          echo "base_branch=$DEFAULT_BRANCH" >> "$GITHUB_OUTPUT"
+                          echo "Unsupported trigger: $EVENT_NAME"
+                          exit 1
                           ;;
                   esac
+
+                  echo "base_branch=$BASE_BRANCH" >> "$GITHUB_OUTPUT"
+
+            - name: "Validate branch metadata"
+              shell: bash
+              env:
+                  BASE_BRANCH: ${{ steps.target-branch.outputs.base_branch }}
+              run: |
+                  if [[ -z "$BASE_BRANCH" ]]; then
+                      echo "Base branch must not be empty."
+                      exit 1
+                  fi
+
+                  if [[ ! "$BASE_BRANCH" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+                      echo "Base branch contains invalid characters: '$BASE_BRANCH'."
+                      exit 1
+                  fi
 
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
               with:
-                  token: ${{ secrets.GITHUB_TOKEN }}
-                  ref: ${{ steps.trigger-context.outputs.base_branch }}
+                  ref: ${{ steps.target-branch.outputs.base_branch }}
+                  persist-credentials: false
 
             - name: "Set up CI environment"
               uses: ./.github/actions/setup-ci-environment
               with:
                   setup-python: "true"
                   poetry-install-with: "dev"
-                  configure-git-author: "true"
+                  configure-git-author: "false"
 
             - name: "Generate SBOM"
               shell: bash
@@ -99,75 +96,90 @@ jobs:
                   mkdir -p sbom
                   poetry run cyclonedx-py poetry --output-file sbom/drf-flex-fields2.cyclonedx.json --of JSON
 
-            - name: "Commit SBOM changes and create or update pull request"
-              env:
-                  # NOTE: GH_TOKEN must be explicitly set here for the gh CLI.
-                  # The token used during checkout is only implicitly available to the git CLI.
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  BASE_BRANCH: ${{ steps.trigger-context.outputs.base_branch }}
-                  REFRESH_REASON: ${{ steps.trigger-context.outputs.reason }}
+                        - name: "Upload SBOM artifact"
+                            uses: actions/upload-artifact@v4
+                            with:
+                                    name: sbom-refresh-input
+                                    path: |
+                                            sbom/drf-flex-fields2.cyclonedx.json
+                                            poetry.lock
+                                    if-no-files-found: error
+
+    # Privileged job: does not run project build scripts; it only validates the
+    # artifact from the first job and performs the write-scoped update.
+    update-sbom:
+        name: "Commit SBOM update"
+        needs:
+            - generate-sbom-artifact
+        runs-on: ubuntu-latest
+        permissions:
+            actions: read
+            contents: write
+
+        steps:
+            - name: "Download SBOM artifact"
+              uses: actions/download-artifact@v4
+              with:
+                  name: sbom-refresh-input
+                  path: sbom-refresh-input
+
+            - name: "Validate SBOM artifact"
               shell: bash
               run: |
-                  if git diff --quiet -- sbom/drf-flex-fields2.cyclonedx.json; then
+                  SBOM_FILE="sbom-refresh-input/sbom/drf-flex-fields2.cyclonedx.json"
+                  LOCK_FILE="sbom-refresh-input/poetry.lock"
+
+                  if [[ ! -f "$SBOM_FILE" ]]; then
+                      echo "Missing SBOM artifact: $SBOM_FILE"
+                      exit 1
+                  fi
+
+                  if [[ ! -f "$LOCK_FILE" ]]; then
+                      echo "Missing lock artifact: $LOCK_FILE"
+                      exit 1
+                  fi
+
+                  if ! jq -e '.bomFormat == "CycloneDX"' "$SBOM_FILE" > /dev/null; then
+                      echo "SBOM artifact is not a valid CycloneDX file."
+                      exit 1
+                  fi
+
+            - name: "Checkout trusted base branch"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  ref: ${{ needs.generate-sbom-artifact.outputs.base_branch }}
+                  persist-credentials: false
+
+            - name: "Configure Git author"
+              shell: bash
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+            - name: "Copy validated outputs into workspace"
+              shell: bash
+              run: |
+                  mkdir -p sbom
+                  cp "sbom-refresh-input/sbom/drf-flex-fields2.cyclonedx.json" "sbom/drf-flex-fields2.cyclonedx.json"
+                                    cp "sbom-refresh-input/poetry.lock" "poetry.lock"
+
+            - name: "Commit and push SBOM update"
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  BASE_BRANCH: ${{ needs.generate-sbom-artifact.outputs.base_branch }}
+              shell: bash
+              run: |
+                  CHANGED_FILES="$(git diff --name-only)"
+
+                  if [[ -z "$CHANGED_FILES" ]]; then
                       echo "No SBOM changes detected."
                       exit 0
                   fi
 
-                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
-                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
-                  COMMIT_MESSAGE="chore(sbom): regenerate project sbom"
-                  PR_TITLE="chore(sbom): refresh project SBOM"
+                  git add sbom/drf-flex-fields2.cyclonedx.json poetry.lock
+                  git commit -m "chore(sbom): regenerate project sbom"
 
-                  git checkout -B "$BRANCH_NAME"
-                  git add sbom/drf-flex-fields2.cyclonedx.json
-                  git commit -m "$COMMIT_MESSAGE"
-                  git push --force-with-lease origin "$BRANCH_NAME"
-
-                  PR_BODY="$(printf 'Automated refresh of sbom/drf-flex-fields2.cyclonedx.json.\n\nTrigger: %s\nBase branch: %s\nWorkflow run: https://github.com/%s/actions/runs/%s\n' "$REFRESH_REASON" "$BASE_BRANCH" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
-
-                  PR_NUMBER="$(
-                      gh pr list \
-                          --head "$BRANCH_NAME" \
-                          --base "$BASE_BRANCH" \
-                          --state open \
-                          --json number \
-                          --jq '.[0].number'
-                  )"
-
-                  if [[ -z "$PR_NUMBER" ]]; then
-                      gh pr create \
-                          --title "$PR_TITLE" \
-                          --body "$PR_BODY" \
-                          --base "$BASE_BRANCH" \
-                          --head "$BRANCH_NAME"
-                  else
-                      gh pr edit "$PR_NUMBER" \
-                          --title "$PR_TITLE" \
-                          --body "$PR_BODY"
-                  fi
-
-            - name: "Enable auto-merge for SBOM PR"
-              if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  BASE_BRANCH: ${{ steps.trigger-context.outputs.base_branch }}
-              shell: bash
-              run: |
-                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
-                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
-
-                  PR_NUMBER="$(
-                      gh pr list \
-                          --head "$BRANCH_NAME" \
-                          --base "$BASE_BRANCH" \
-                          --state open \
-                          --json number \
-                          --jq '.[0].number'
-                  )"
-
-                  if [[ -n "$PR_NUMBER" ]]; then
-                      gh pr merge "$PR_NUMBER" \
-                          --auto \
-                          --squash \
-                          --delete-branch
-                  fi
+                  # Configure git auth only in the privileged job; the build job
+                  # never runs with write-capable git credentials.
+                  gh auth setup-git
+                  git push origin "HEAD:$BASE_BRANCH"
