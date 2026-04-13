@@ -35,7 +35,6 @@
             "description": "Library strategy: widen version ranges instead of bumping minimums",
             "matchManagers": ["poetry"],
             "rangeStrategy": "widen",
-            "allowedVersions": ">={{add major -1}}",
             "groupName": "runtime dependencies"
         },
         {
