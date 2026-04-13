@@ -99,6 +99,12 @@ jobs:
                       fi
                   fi
 
+            # Saftey guard for manual workflow runs. When the workflow runs for PRs, the tests
+            # normally should already have passed. But running the tests is cheap, so to be extra
+            # safe, we simply run them again here, before going on with the release.
+            - name: "Run tests"
+              uses: ./.github/workflows/run-tests-full.yml
+
             - name: "Bump version, commit, and tag release"
               id: version
               shell: bash
@@ -144,9 +150,6 @@ jobs:
                   git commit -m "chore(release): $release_tag"
                   git tag "$release_tag"
 
-                  git push origin "HEAD:${{ steps.target-branch.outputs.target_branch }}"
-                  git push origin "$release_tag"
-
             - name: "Build and publish package to PyPI Test"
               if: ${{ steps.target-branch.outputs.is_default_branch != 'true' }}
               env:
@@ -163,3 +166,10 @@ jobs:
               shell: bash
               run: |
                   poetry publish --build
+
+            - name: "Push commit and tag to remote"
+              if: success()
+              shell: bash
+              run: |
+                  git push origin "HEAD:${{ steps.target-branch.outputs.target_branch }}"
+                  git push origin "${{ steps.version.outputs.tag }}"
