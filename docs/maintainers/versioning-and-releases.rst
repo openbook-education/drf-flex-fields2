@@ -136,7 +136,8 @@ Manual Release Checklist
    There is a GitHub Actions workflow to support this process. The workflow can be used
    to bump the version number and tag the commit (in one step) and then, in a second run,
    to finally build and publish the package. The workflow doesn't create an issue, branch
-   or pull request. But the workflow can be run with a branch that has been created before.
+   or pull request, so it must be run for the default branch release process rather than
+   from a pre-created release branch.
 
 Automated Dependency Releases
 -----------------------------
