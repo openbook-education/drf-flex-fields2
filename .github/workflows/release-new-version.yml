@@ -44,6 +44,12 @@ jobs:
               shell: bash
               run: |
                   if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+                      if [[ "${{ github.ref_type }}" != "branch" ]]; then
+                          echo "Manual release workflow must be run from a branch, not a tag."
+                          echo "Current ref type: ${{ github.ref_type }}, ref name: ${{ github.ref_name }}"
+                          exit 1
+                      fi
+
                       # For manual dispatch: github.ref_name is the branch name where the workflow was invoked
                       # This allows running release from any branch (e.g., release-prep branches)
                       target_branch="${{ github.ref_name }}"
