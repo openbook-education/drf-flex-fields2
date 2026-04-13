@@ -36,8 +36,47 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: "Validate manual dispatch reference"
+              if: ${{ github.event_name == 'workflow_dispatch' }}
+              shell: bash
+              run: |
+                  if [[ "${{ github.ref_type }}" != "branch" ]]; then
+                      echo "Manual dispatch must be started from a branch ref, not '${{ github.ref_type }}'."
+                      exit 1
+                  fi
+
+            - name: "Determine trigger context"
+              id: trigger-context
+              shell: bash
+              run: |
+                  case "${{ github.event_name }}" in
+                      workflow_run)
+                          echo "reason=after-${{ github.event.workflow_run.name }}" >> "$GITHUB_OUTPUT"
+                          echo "base_branch=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+                          ;;
+                      schedule)
+                          echo "reason=weekly-schedule" >> "$GITHUB_OUTPUT"
+                          echo "base_branch=${{ github.event.repository.default_branch }}" >> "$GITHUB_OUTPUT"
+                          ;;
+                      workflow_dispatch)
+                          if [[ -n "${{ inputs.reason }}" ]]; then
+                              echo "reason=${{ inputs.reason }}" >> "$GITHUB_OUTPUT"
+                          else
+                              echo "reason=manual-dispatch" >> "$GITHUB_OUTPUT"
+                          fi
+
+                          echo "base_branch=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+                          ;;
+                      *)
+                          echo "reason=unknown-trigger" >> "$GITHUB_OUTPUT"
+                          echo "base_branch=${{ github.event.repository.default_branch }}" >> "$GITHUB_OUTPUT"
+                          ;;
+                  esac
+
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  ref: ${{ steps.trigger-context.outputs.base_branch }}
 
             - name: "Set up Python"
               uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
@@ -53,33 +92,10 @@ jobs:
                   mkdir -p sbom
                   cyclonedx-py requirements requirements-export.txt --output-file sbom/drf-flex-fields2.cyclonedx.json --of JSON
 
-            - name: "Determine refresh reason"
-              id: trigger-context
-              shell: bash
-              run: |
-                  case "${{ github.event_name }}" in
-                      workflow_run)
-                          echo "reason=after-${{ github.event.workflow_run.name }}" >> "$GITHUB_OUTPUT"
-                          ;;
-                      schedule)
-                          echo "reason=weekly-schedule" >> "$GITHUB_OUTPUT"
-                          ;;
-                      workflow_dispatch)
-                          if [[ -n "${{ inputs.reason }}" ]]; then
-                              echo "reason=${{ inputs.reason }}" >> "$GITHUB_OUTPUT"
-                          else
-                              echo "reason=manual-dispatch" >> "$GITHUB_OUTPUT"
-                          fi
-                          ;;
-                      *)
-                          echo "reason=unknown-trigger" >> "$GITHUB_OUTPUT"
-                          ;;
-                  esac
-
             - name: "Commit SBOM changes and create or update pull request"
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+                  BASE_BRANCH: ${{ steps.trigger-context.outputs.base_branch }}
                   REFRESH_REASON: ${{ steps.trigger-context.outputs.reason }}
               shell: bash
               run: |
@@ -88,7 +104,8 @@ jobs:
                       exit 0
                   fi
 
-                  BRANCH_NAME="chore/sbom-refresh"
+                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
+                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
                   COMMIT_MESSAGE="chore(sbom): regenerate project sbom"
                   PR_TITLE="chore(sbom): refresh project SBOM"
 
@@ -102,12 +119,12 @@ jobs:
                   git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                   git push --force-with-lease origin "$BRANCH_NAME"
 
-                  PR_BODY="$(printf 'Automated refresh of sbom/drf-flex-fields2.cyclonedx.json.\n\nTrigger: %s\nBase branch: %s\nWorkflow run: https://github.com/%s/actions/runs/%s\n' "$REFRESH_REASON" "$DEFAULT_BRANCH" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
+                  PR_BODY="$(printf 'Automated refresh of sbom/drf-flex-fields2.cyclonedx.json.\n\nTrigger: %s\nBase branch: %s\nWorkflow run: https://github.com/%s/actions/runs/%s\n' "$REFRESH_REASON" "$BASE_BRANCH" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
 
                   PR_NUMBER="$(
                       gh pr list \
                           --head "$BRANCH_NAME" \
-                          --base "$DEFAULT_BRANCH" \
+                            --base "$BASE_BRANCH" \
                           --state open \
                           --json number \
                           --jq '.[0].number'
@@ -117,7 +134,7 @@ jobs:
                       gh pr create \
                           --title "$PR_TITLE" \
                           --body "$PR_BODY" \
-                          --base "$DEFAULT_BRANCH" \
+                          --base "$BASE_BRANCH" \
                           --head "$BRANCH_NAME"
                   else
                       gh pr edit "$PR_NUMBER" \
@@ -129,15 +146,16 @@ jobs:
               if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  BASE_BRANCH: ${{ steps.trigger-context.outputs.base_branch }}
               shell: bash
               run: |
-                  BRANCH_NAME="chore/sbom-refresh"
-                  DEFAULT_BRANCH="${{ github.event.repository.default_branch }}"
+                  BRANCH_SUFFIX="$(echo "$BASE_BRANCH" | tr '[:upper:]' '[:lower:]' | tr '/._' '-' | tr -cd 'a-z0-9-')"
+                  BRANCH_NAME="chore/sbom-refresh/${BRANCH_SUFFIX}"
 
                   PR_NUMBER="$(
                       gh pr list \
                           --head "$BRANCH_NAME" \
-                          --base "$DEFAULT_BRANCH" \
+                          --base "$BASE_BRANCH" \
                           --state open \
                           --json number \
                           --jq '.[0].number'
