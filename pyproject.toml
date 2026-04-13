@@ -29,6 +29,7 @@ sphinx-llm = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.13.5"
+cyclonedx-bom = "^7.1.1"
 
 [tool.coverage.run]
 branch = true

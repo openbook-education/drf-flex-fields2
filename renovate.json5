@@ -11,7 +11,21 @@
     ],
     "timezone": "Europe/Berlin",
     "dependencyDashboardTitle": "Dependency Dashboard",
-    "enabledManagers": ["github-actions", "poetry"],
+    "enabledManagers": ["github-actions", "poetry", "custom.regex"],
+    "customManagers": [
+        {
+            "customType": "regex",
+            "description": "Update default Python version for setup-ci-environment action",
+            "managerFilePatterns": [
+                "/\\.github\\/workflows\\/.*\\.ya?ml$/",
+                "/\\.github\\/actions\\/.*\\/action\\.ya?ml$/"
+            ],
+            "matchStrings": [
+                "renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\ndefault:\\s*['\\\"](?<currentValue>[^'\\\"]+)['\\\"]"
+            ],
+            "versioningTemplate": "pep440"
+        }
+    ],
     "labels": ["dependencies", "automated"],
     "configMigration": true,
     "prConcurrentLimit": 0,
@@ -72,7 +86,7 @@
         },
         {
             "description": "Keep GitHub Actions updates organized",
-            "matchManagers": ["github-actions"],
+            "matchManagers": ["github-actions", "custom.regex"],
             "dependencyDashboardCategory": "GitHub Actions",
             "commitMessageTopic": "GitHub Actions dependencies"
         }

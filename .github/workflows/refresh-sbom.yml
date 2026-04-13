@@ -76,24 +76,26 @@ jobs:
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
               with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
                   ref: ${{ steps.trigger-context.outputs.base_branch }}
 
-            - name: "Set up Python"
-              uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
               with:
-                  python-version: "3.14"
+                  setup-python: "true"
+                  poetry-install-with: "dev"
+                  configure-git-author: "true"
 
             - name: "Generate SBOM"
               shell: bash
               run: |
-                  python -m pip install --upgrade pip
-                  python -m pip install poetry poetry-plugin-export cyclonedx-bom
-                  poetry export --without-hashes --format requirements.txt --output requirements-export.txt
                   mkdir -p sbom
-                  cyclonedx-py requirements requirements-export.txt --output-file sbom/drf-flex-fields2.cyclonedx.json --of JSON
+                  poetry run cyclonedx-py poetry --output-file sbom/drf-flex-fields2.cyclonedx.json --of JSON
 
             - name: "Commit SBOM changes and create or update pull request"
               env:
+                  # NOTE: GH_TOKEN must be explicitly set here for the gh CLI.
+                  # The token used during checkout is only implicitly available to the git CLI.
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   BASE_BRANCH: ${{ steps.trigger-context.outputs.base_branch }}
                   REFRESH_REASON: ${{ steps.trigger-context.outputs.reason }}
@@ -109,14 +111,9 @@ jobs:
                   COMMIT_MESSAGE="chore(sbom): regenerate project sbom"
                   PR_TITLE="chore(sbom): refresh project SBOM"
 
-                  git config user.name "github-actions[bot]"
-                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
                   git checkout -B "$BRANCH_NAME"
                   git add sbom/drf-flex-fields2.cyclonedx.json
                   git commit -m "$COMMIT_MESSAGE"
-
-                  git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                   git push --force-with-lease origin "$BRANCH_NAME"
 
                   PR_BODY="$(printf 'Automated refresh of sbom/drf-flex-fields2.cyclonedx.json.\n\nTrigger: %s\nBase branch: %s\nWorkflow run: https://github.com/%s/actions/runs/%s\n' "$REFRESH_REASON" "$BASE_BRANCH" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")"
@@ -124,7 +121,7 @@ jobs:
                   PR_NUMBER="$(
                       gh pr list \
                           --head "$BRANCH_NAME" \
-                            --base "$BASE_BRANCH" \
+                          --base "$BASE_BRANCH" \
                           --state open \
                           --json number \
                           --jq '.[0].number'
