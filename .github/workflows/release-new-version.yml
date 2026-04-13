@@ -20,7 +20,7 @@ permissions:
     contents: read
 
 concurrency:
-    group: "release-renovate-minor-${{ github.event.pull_request.number || github.run_id }}"
+    group: "release-new-version"
     cancel-in-progress: false
 
 jobs:
@@ -38,7 +38,6 @@ jobs:
                 )
             }}
         runs-on: ubuntu-latest
-
         steps:
             - name: "Determine target branch"
               id: target-branch
