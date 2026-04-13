@@ -1,4 +1,4 @@
-name: "Bump patch version and publish (default branch!)"
+name: "Bump version and publish"
 
 on:
     workflow_dispatch:
