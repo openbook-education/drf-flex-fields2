@@ -143,9 +143,20 @@ Automated Dependency Releases
 
 Merged Renovate pull requests labeled ``minor-update`` are released
 automatically by ``.github/workflows/release-new-version.yml`` when they
-land on the default branch. The workflow bumps the patch number and
-generally follows the procedure described above to tag and publish
-a maintenance release with updated dependency versions.
+land on the default branch. The workflow bumps the patch number and publishes
+a maintenance release to PyPI with updated dependency versions.
+
+The release workflow also supports manual dispatching for safe release-prep
+workflows:
+
+- **Manual dispatch on the default branch:** Bumps the version (patch, minor, or major)
+  and publishes directly to PyPI.
+- **Manual dispatch on a non-default branch:** Bumps the version, adds an ``-rc.N``
+  pre-release suffix (e.g., ``1.0.1-rc.1``), and publishes to TestPyPI instead
+  of PyPI. This allows testing release artifacts before final publication.
+
+The ``-rc.N`` counter increments automatically if that tag already exists,
+enabling multiple pre-release attempts from the same branch.
 
 Read the Docs
 -------------

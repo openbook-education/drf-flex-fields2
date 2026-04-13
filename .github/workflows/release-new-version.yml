@@ -1,21 +1,13 @@
-name: "Release After Renovate Minor Merge"
+name: "Bump patch version and publish (default branch!)"
 
 on:
     workflow_dispatch:
         inputs:
-            mode:
-                description: "Manual run mode"
-                type: choice
-                required: true
-                default: bump-only
-                options:
-                    - bump-only
-                    - publish-only
             bump:
-                description: "Version part to bump"
-                type: choice
+                description: "Version bump type"
                 required: true
-                default: patch
+                default: "patch"
+                type: choice
                 options:
                     - patch
                     - minor
@@ -48,10 +40,35 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
+            - name: "Determine target branch"
+              id: target-branch
+              shell: bash
+              run: |
+                  if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+                      # For manual dispatch: github.ref_name is the branch name where the workflow was invoked
+                      # This allows running release from any branch (e.g., release-prep branches)
+                      target_branch="${{ github.ref_name }}"
+                  else
+                      # For PR merged: github.event.pull_request.base.ref is the target branch of the PR
+                      # (typically the default branch), ensuring releases go to the correct base branch
+                      target_branch="${{ github.event.pull_request.base.ref }}"
+                  fi
+
+                  is_default_branch="false"
+                  if [[ "$target_branch" == "${{ github.event.repository.default_branch }}" ]]; then
+                      is_default_branch="true"
+                  fi
+
+                  echo "target_branch=$target_branch" >> "$GITHUB_OUTPUT"
+                  echo "is_default_branch=$is_default_branch" >> "$GITHUB_OUTPUT"
+
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
               with:
                   token: ${{ secrets.RENOVATE_TOKEN }}
+                  ref: ${{ steps.target-branch.outputs.target_branch }}
+                  fetch-depth: 0
+                  fetch-tags: true
 
             - name: "Set up CI environment"
               uses: ./.github/actions/setup-ci-environment
@@ -60,27 +77,22 @@ jobs:
                   configure-git-author: "true"
 
             - name: "Ensure PyPI token is configured"
-              if: >-
-                  ${{
-                      github.event_name != 'workflow_dispatch' ||
-                      github.event.inputs.mode == 'publish-only'
-                  }}
-              env:
-                  POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
               shell: bash
               run: |
-                  if [[ -z "$POETRY_PYPI_TOKEN_PYPI" ]]; then
-                      echo "Repository secret POETRY_PYPI_TOKEN_PYPI is not configured."
-                      exit 1
+                  if [[ "${{ steps.target-branch.outputs.is_default_branch }}" == "true" ]]; then
+                      if [[ -z "${{ secrets.POETRY_PYPI_TOKEN_PYPI }}" ]]; then
+                          echo "Repository secret POETRY_PYPI_TOKEN_PYPI is not configured."
+                          exit 1
+                      fi
+                  else
+                      if [[ -z "${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}" ]]; then
+                          echo "Repository secret POETRY_PYPI_TOKEN_TESTPYPI is not configured."
+                          exit 1
+                      fi
                   fi
 
             - name: "Bump version, commit, and tag release"
               id: version
-              if: >-
-                  ${{
-                      github.event_name != 'workflow_dispatch' ||
-                      github.event.inputs.mode == 'bump-only'
-                  }}
               shell: bash
               run: |
                   if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
@@ -92,6 +104,17 @@ jobs:
                   previous_version="$(poetry version --short)"
                   poetry version "$bump_part"
                   new_version="$(poetry version --short)"
+
+                  # Add -rc.N suffix if not on default branch
+                  if [[ "${{ steps.target-branch.outputs.is_default_branch }}" != "true" ]]; then
+                      rc_num=1
+                      while git rev-parse "v${new_version}-rc.${rc_num}" >/dev/null 2>&1; do
+                          ((rc_num++))
+                      done
+                      new_version="${new_version}-rc.${rc_num}"
+                      poetry version "${new_version}"
+                  fi
+
                   release_tag="v${new_version}"
 
                   if git rev-parse "$release_tag" >/dev/null 2>&1; then
@@ -107,15 +130,20 @@ jobs:
                   git commit -m "chore(release): $release_tag"
                   git tag "$release_tag"
 
-                  git push origin "HEAD:${{ github.event.repository.default_branch }}"
+                  git push origin "HEAD:${{ steps.target-branch.outputs.target_branch }}"
                   git push origin "$release_tag"
 
-            - name: "Build and publish package"
-              if: >-
-                  ${{
-                      github.event_name != 'workflow_dispatch' ||
-                      github.event.inputs.mode == 'publish-only'
-                  }}
+            - name: "Build and publish package to TestPyPI"
+              if: ${{ steps.target-branch.outputs.is_default_branch != 'true' }}
+              env:
+                  POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
+              shell: bash
+              run: |
+                  poetry config repositories.testpypi https://test.pypi.org/legacy/
+                  poetry publish --build --repository testpypi
+
+            - name: "Build and publish package to PyPI"
+              if: ${{ steps.target-branch.outputs.is_default_branch == 'true' }}
               env:
                   POETRY_PYPI_TOKEN_PYPI: ${{ secrets.POETRY_PYPI_TOKEN_PYPI }}
               shell: bash

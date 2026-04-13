@@ -25,22 +25,29 @@ secrets were created:
    * - ``RENOVATE_TOKEN``
      - Fine-grained personal access token for Renovate and SBOM automation.
    * - ``POETRY_PYPI_TOKEN_PYPI``
-     - PyPI API token used by the automated release workflow when publishing.
+     - PyPI API token used by the automated release workflow when publishing to PyPI.
+   * - ``POETRY_PYPI_TOKEN_TESTPYPI``
+     - TestPyPI API token used by the automated release workflow when testing releases on non-default branches.
 
 ``RENOVATE_TOKEN`` was configured so Renovate and related SBOM automation could
 open pull requests and merge auto-mergeable dependency updates after checks
-passed.
-
-``POETRY_PYPI_TOKEN_PYPI`` must contain a PyPI token with permission to upload
-new releases for ``drf-flex-fields2``. The release workflow passes it straight
-through to Poetry, which reads the value from the standard
-``POETRY_PYPI_TOKEN_PYPI`` environment variable.
-
-The token belongs to a user with write access to the repository and has the
+passed. The token belongs to a user with write access to the repository and the
 following permissions:
 
 - Read access to metadata
-- Read and write access to code, issues, pull requests, and workflows
+- Read/write access to code, issues, pull requests, and workflows.
+
+``POETRY_PYPI_TOKEN_PYPI`` must contain a PyPI token with permission to upload
+new releases for ``drf-flex-fields2``. The release workflow passes it straight
+through to Poetry when publishing to the production PyPI repository. The token
+belongs to a user with write access to the repository.
+
+``POETRY_PYPI_TOKEN_TESTPYPI`` must contain a TestPyPI token for testing
+pre-release versions. The release workflow uses this token when the workflow is
+manually dispatched from a non-default branch (e.g., a release-prep branch),
+allowing dry-run releases with ``-rc.N`` version suffixes before final
+publication. This token should have permission to upload to the TestPyPI
+repository at ``https://test.pypi.org/legacy/``.
 
 Branch Protection Rules
 -----------------------
