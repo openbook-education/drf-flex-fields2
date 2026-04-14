@@ -17,20 +17,29 @@ Runtime Dependencies
 
 No other runtime dependencies are required.
 
-Because this project is a reusable library rather than an application, we do
-not pin runtime dependencies to a single tested version. Instead, we keep
-version ranges that aim to support the previous major release up to the most
-recent tested release.
+Because this project is a reusable library rather than an application, we keep
+runtime ranges deliberately wide and only define minimum versions.
 
-In practice this means:
+Open ranges for runtime dependencies
+------------------------------------
 
-- Django is maintained as a major-version window, for example ``>=5.0,<=6.0.3``.
-- Django REST Framework follows the same compatibility goal, but is managed a
-  little more conservatively because its minor and patch releases are not
-  always semver-safe.
+Since Django and Django REST Framework are imported in the library code, they
+are treated as runtime dependencies under Python packaging best practices.
 
-This strategy reduces friction for downstream users, who may already be on a
-slightly older supported stack version.
+The minimum versions are tracked by policy:
+
+- Django ``>=`` most recent LTS release
+- Django REST Framework ``>=`` major release from about one year ago
+- Python: last three versions
+
+For Django REST Framework, the second segment (for example the ``16`` in
+``3.16``) is treated as the effective major line for compatibility planning,
+because the first segment changes infrequently.
+
+No upper bounds are set for runtime dependencies. The default expectation is
+forward compatibility with newer Django and Django REST Framework releases. If
+an upstream release introduces an incompatibility, we detect it proactively
+through CI and release a compatibility update.
 
 Non-Runtime Dependencies
 ------------------------
@@ -66,19 +75,18 @@ Automerge therefore only happens after the repository checks succeed.
 Test Strategy For Dependency Updates
 ------------------------------------
 
-The ideal setup for a reusable library would be a full test matrix across
-multiple Python, Django, and Django REST Framework combinations.
+We validate the open ranges with ``nox`` by testing lower and upper tracked
+dependency combinations for Django and Django REST Framework, including
+cross-combinations:
 
-For pragmatic reasons, this project currently tests only against:
+- min Django + min DRF
+- max Django + max DRF
+- min Django + max DRF
+- max Django + min DRF
 
-- the most recent supported Python version
-- the most recent supported Django version
-- the most recent supported Django REST Framework version
-
-This keeps maintenance overhead low and gives fast feedback for Renovate pull
-requests. The tradeoff is that there is a small chance of accidentally breaking
-older supported dependency versions. Given the limited scope and size of this
-project, that risk is considered acceptable.
+In CI, this matrix is executed across the last three supported Python versions.
+This reduces the risk of regressions at supported boundaries while still
+keeping maintenance manageable.
 
 Manual Maintenance
 ------------------

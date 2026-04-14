@@ -32,6 +32,8 @@ Checks and review
 -----------------
 
 - Required CI checks must pass.
+- Full compatibility tests run through ``poetry run nox`` across the Django/DRF dependency matrix.
+- The CI test workflow additionally runs this through a Python version matrix (last three versions).
 - Coverage checks must remain at or above the configured threshold.
 - Copilot review is requested automatically.
 - Manual maintainer review confirms behavior, tests, and documentation quality.
