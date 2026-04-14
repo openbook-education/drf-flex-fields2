@@ -150,7 +150,7 @@ jobs:
                   git commit -m "chore(release): $release_tag"
                   git tag "$release_tag"
 
-            - name: "Build and publish package to PyPI Test"
+            - name: "Build and publish package to TestPyPi"
               if: ${{ steps.target-branch.outputs.is_default_branch != 'true' }}
               env:
                   POETRY_PYPI_TOKEN_TEST: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}

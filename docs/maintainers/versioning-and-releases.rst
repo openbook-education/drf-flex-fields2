@@ -109,7 +109,7 @@ Manual Release Checklist
    ``poetry config pypi-token.pypi <token>`` once to store it, or set the
    ``POETRY_PYPI_TOKEN_PYPI`` environment variable.
 
-   The PyPI test environment must first be configured:
+   The TestPyPi environment must first be configured:
 
    .. code-block:: bash
 
@@ -137,12 +137,12 @@ Manual Release Checklist
    to bump the version number and tag the commit (in one step) and then to finally build
    and publish the package. When run on the default branch the package will be automatically
    deployed to PyPI. On a release-prep branch, the package will contain ``-rc.N`` version
-   suffix and will be published on PyPI Test.
+   suffix and will be published on TestPyPi.
 
 .. warning::
 
    Prefer running the workflow on a release-prep branch created from an issue as described
-   above. Once the new version has been successfully built, tested and published on PyPI Test,
+   above. Once the new version has been successfully built, tested and published on TestPyPi,
    merge all changes into the default branch and rerun this workflow to publish the final
    version (without ``-rc.N`` suffix) on PyPI.
 
@@ -160,7 +160,7 @@ workflows:
 - **Manual dispatch on the default branch:** Bumps the version (patch, minor, or major)
   and publishes directly to PyPI.
 - **Manual dispatch on a non-default branch:** Bumps the version, adds an ``-rc.N``
-  pre-release suffix (e.g., ``1.0.1-rc.1``), and publishes to PyPI Test instead
+  pre-release suffix (e.g., ``1.0.1-rc.1``), and publishes to TestPyPi instead
   of PyPI. This allows testing release artifacts before final publication.
 
 The ``-rc.N`` counter increments automatically if that tag already exists,
