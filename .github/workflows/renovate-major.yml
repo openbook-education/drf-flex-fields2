@@ -23,7 +23,7 @@ jobs:
               uses: renovatebot/github-action@b67590ea780158ccd13192c22a3655a5231f869d # v46.1.8
               with:
                   configurationFile: renovate.json5
-                  token: ${{ secrets.RENOVATE_TOKEN }}
+                  token: ${{ secrets.BOT_TOKEN }}
               env:
                   LOG_LEVEL: "info"
                   NPM_CONFIG_LEGACY_PEER_DEPS: "true"
