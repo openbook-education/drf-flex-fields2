@@ -24,8 +24,25 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
+    run-tests:
+        name: "Run tests"
+        if: >-
+            ${{
+                github.event_name == 'workflow_dispatch' || (
+                    github.event.pull_request.merged == true &&
+                    github.event.pull_request.base.ref == github.event.repository.default_branch &&
+                    contains(github.event.pull_request.labels.*.name, 'minor-update') && (
+                        github.event.pull_request.user.login == 'renovate[bot]' ||
+                        startsWith(github.event.pull_request.head.ref, 'renovate/')
+                    )
+                )
+            }}
+        uses: ./.github/workflows/run-tests-full.yml
+
     release:
         name: "Bump version, tag, and publish"
+        needs:
+            - run-tests
         if: >-
             ${{
                 github.event_name == 'workflow_dispatch' || (
