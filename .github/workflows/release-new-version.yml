@@ -153,7 +153,7 @@ jobs:
             - name: "Build and publish package to TestPyPi"
               if: ${{ steps.target-branch.outputs.is_default_branch != 'true' }}
               env:
-                  POETRY_PYPI_TOKEN_TEST: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
+                  POETRY_PYPI_TOKEN_TESTPYPI: ${{ secrets.POETRY_PYPI_TOKEN_TESTPYPI }}
               shell: bash
               run: |
                   poetry config repositories.testpypi https://test.pypi.org/legacy/
