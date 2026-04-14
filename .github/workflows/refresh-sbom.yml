@@ -3,6 +3,8 @@ name: "Refresh Project SBOM"
 on:
     schedule:
         - cron: "42 5 * * 1"
+    # FIXME: Trigger by Pull Request to enforce scoping this workflow to an unpriviledged environment!
+    # Add comment to explain the security implications
     workflow_run:
         workflows:
             - "Bump Dependencies (Minor)"
