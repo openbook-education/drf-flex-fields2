@@ -89,7 +89,17 @@ Release Checklist
       git tag vX.Y.Z
       git push origin main --tags
 
-10. **Build distribution artifacts:**
+10. **Publish a GitHub Release:**
+
+      Create a release in GitHub using the ``vX.Y.Z`` tag you just pushed.
+
+      - Title: ``vX.Y.Z``
+      - Description: summarize user-facing changes from :doc:`/reference/changelog`
+      - Comparison link: ``https://github.com/<org>/<repo>/compare/vX.Y.(Z-1)...vX.Y.Z``
+
+      Ensure this is a full release (not a draft) once verified.
+
+11. **Build distribution artifacts:**
 
    .. code-block:: bash
 
@@ -99,7 +109,7 @@ Release Checklist
    ``dist/`` directory. Inspect the output to confirm the expected files are
    present.
 
-11. **Publish to PyPI:**
+12. **Publish to PyPI:**
 
    .. code-block:: bash
 
@@ -122,7 +132,7 @@ Release Checklist
 
       poetry publish -r testpypi
 
-12. **Verify the release** on PyPI and confirm the package installs cleanly:
+13. **Verify the release** on PyPI and confirm the package installs cleanly:
 
     Create a temporary directory and run the following commands to verify the release.
 
