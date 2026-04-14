@@ -191,6 +191,7 @@ jobs:
                   # Configure git auth only in the privileged job; the build job
                   # never runs with write-capable git credentials.
                   gh auth login --with-token <<< "$BOT_TOKEN"
+                  git remote set-url origin "https://x-access-token:${BOT_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
                   git push --force-with-lease origin "$BRANCH_NAME"
 
                   PR_BODY="Automated refresh of sbom/ and poetry.lock files."
