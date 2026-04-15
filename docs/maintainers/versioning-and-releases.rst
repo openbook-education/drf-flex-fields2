@@ -84,17 +84,19 @@ Release Checklist
 
 9. **Tag the commit in order to trigger the release workflow.**
 
-   Checkout the main branch and tag the merge commit, then push the tag to GitHub:
+   Checkout the main branch and create a **signed annotated tag** for the merge
+   commit, then push the tag to GitHub:
 
    .. code-block:: bash
 
       git checkout main
       git pull
-      git tag vX.Y.Z
+      git tag -s vX.Y.Z -m "Release vX.Y.Z"
       git push origin --tags
 
    The ``.github/workflows/release.yml`` workflow will automatically:
 
+   - Verify the tag is a signed annotated tag with a valid signature
    - Verify the tag version matches ``pyproject.toml``
    - Run the full test suite and build the documentation again (for safety)
    - Build source distribution (``.tar.gz``) and wheel (``.whl``) artifacts
@@ -154,6 +156,30 @@ Update the changelog accordingly:
 
 The release workflow will automatically detect pre-releases and mark them as
 such in GitHub.
+
+Tag Signing Setup
+-----------------
+
+Release tags must be signed. If tag signing is not configured locally, set it
+up once before creating your next release:
+
+.. code-block:: bash
+
+   # Use your existing GPG key ID
+   git config --global user.signingkey <YOUR_GPG_KEY_ID>
+   git config --global tag.gpgSign true
+
+To list available secret keys and find your key ID:
+
+.. code-block:: bash
+
+   gpg --list-secret-keys --keyid-format=long
+
+Only signed annotated tags (``git tag -s``) are accepted by the release
+workflow.
+
+Signing commits is also recommended as a general repository security practice,
+but commit signing is currently not enforced by the release workflow.
 
 Read the Docs
 -------------

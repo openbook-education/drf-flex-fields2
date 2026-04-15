@@ -104,6 +104,22 @@ The repository currently uses a small workflow set:
   when a version tag (e.g., ``v2.0.0``) is pushed to the default branch. See
   :doc:`/maintainers/versioning-and-releases` for details.
 
+Release Tag Signature Enforcement
+---------------------------------
+
+The release workflow enforces signed, annotated tags before any artifacts are
+built or published.
+
+- Tags must be created with ``git tag -s`` (annotated + signed).
+- Lightweight tags are rejected.
+- Tags with missing or invalid signatures are rejected.
+
+This check is performed in ``.github/workflows/release.yml`` via the GitHub API
+verification metadata for the tag object.
+
+Signed commits are also recommended for maintainers, but they are not enforced
+by the release workflow.
+
 Automatically request a Copilot code review
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

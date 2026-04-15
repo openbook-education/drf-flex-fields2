@@ -55,6 +55,34 @@ jobs:
             - name: "Checkout code"
               uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
+            - name: "Verify release tag is signed and annotated"
+              shell: bash
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REPOSITORY: ${{ github.repository }}
+                  TAG_NAME: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+
+                  REF_PATH="repos/${REPOSITORY}/git/ref/tags/${TAG_NAME}"
+                  TAG_TYPE="$(gh api "$REF_PATH" --jq '.object.type')"
+                  if [[ "$TAG_TYPE" != "tag" ]]; then
+                      echo "Release tags must be signed annotated tags. '${TAG_NAME}' is a lightweight tag."
+                      exit 1
+                  fi
+
+                  TAG_SHA="$(gh api "$REF_PATH" --jq '.object.sha')"
+                  VERIFIED="$(gh api "repos/${REPOSITORY}/git/tags/${TAG_SHA}" --jq '.verification.verified')"
+                  if [[ "$VERIFIED" != "true" ]]; then
+                      REASON="$(gh api "repos/${REPOSITORY}/git/tags/${TAG_SHA}" --jq '.verification.reason // "unknown"')"
+                      echo "Release tag signature verification failed. Reason: ${REASON}. Use 'git tag -s' with a verified signing key."
+                      exit 1
+                  fi
+
+                  SIGNER="$(gh api "repos/${REPOSITORY}/git/tags/${TAG_SHA}" --jq '.verification.signer.login // "unknown"')"
+                  KEY_ID="$(gh api "repos/${REPOSITORY}/git/tags/${TAG_SHA}" --jq '.verification.key_id // "n/a"')"
+                  echo "Verified signed tag '${TAG_NAME}' (signer: ${SIGNER}, key_id: ${KEY_ID})."
+
             - name: "Set up CI environment"
               uses: ./.github/actions/setup-ci-environment
               with:
