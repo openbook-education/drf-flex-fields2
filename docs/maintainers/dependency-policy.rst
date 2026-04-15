@@ -58,19 +58,22 @@ Automated Updates With Renovate
 -------------------------------
 
 `Renovate <https://docs.renovatebot.com/>`_ regularly checks the repository for
-dependency updates and opens pull requests.
+dependency updates.
 
 Our Renovate configuration follows these rules:
 
-- Runtime dependencies managed by Poetry use a widening strategy rather than
-  simply bumping minimum versions.
-- Non-runtime dependencies are grouped and bumped to the newest version.
-- Minor and patch updates are configured for automerge when the required status
-  checks pass.
-- Major version updates always require manual review and are never auto-merged.
+- Runtime dependencies (Django, Django REST Framework, Python) are tracked in
+  the Dependency Dashboard and require manual approval before Renovate may
+  create a pull request.
+- A dedicated issue (``Runtime dependency updates available``) is automatically
+  created or updated whenever pending runtime updates are detected, so maintainers
+  do not need to proactively monitor the dashboard.
+- Non-runtime Poetry dependencies are grouped and pinned to exact versions,
+  then auto-merged after required status checks pass.
+- GitHub Actions updates are auto-merged after required status checks pass.
 
-When Renovate opens a pull request, the full CI test suite runs automatically.
-Automerge therefore only happens after the repository checks succeed.
+When Renovate opens an auto-merge pull request, the full CI test suite runs
+automatically. Auto-merge therefore only happens after repository checks succeed.
 
 Test Strategy For Dependency Updates
 ------------------------------------

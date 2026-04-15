@@ -31,6 +31,8 @@
     "prConcurrentLimit": 0,
     "prHourlyLimit": 0,
     "rebaseWhen": "behind-base-branch",
+
+    // Automerge PR for lockfile maintenance
     "lockFileMaintenance": {
         "enabled": true,
         "automerge": true,
@@ -39,56 +41,36 @@
     },
 
     // NOTE: Ordering matters. Later rules override earlier ones.
+
+    // NOTE: Renovate mostly handles non-runtime dependencies, as we want to maintain
+    // a minimum version for runtime dependencies like Django and DRF, in accordance
+    // to our documented dependency tracking and release strategy. For everything else
+    // we can bump or pin versions as usual and have Renovate automerge a PR to land
+    // the changes.
+
     "packageRules": [
         {
-            // NOTE: For applications "bump" is a good choice, to use the most recent versions.
-            // For reusable libraries "widen" combined with testing against different versions
-            // causes much less friction for downstream users. Our strategy is to set the upper
-            // bound to the newest tested version (usually the most recent version available)
-            // of each package.
-            "description": "Library strategy: widen version ranges instead of bumping minimums",
-            "matchManagers": ["poetry"],
-            "rangeStrategy": "widen",
-            "groupName": "runtime dependencies"
-        },
-        {
-            // NOTE: To reduce noise, this combines non-runtime dependencies into a single PR.
-            // Also we always bump to the latest version instead of widening the version range.
-            // For all other dependencies we keep the one PR per dependency / widen range logic.
-            "description": "Group development and documentation dependencies",
+            "description": "Pin development and documentation dependencies",
             "matchManagers": ["poetry"],
             "matchDepTypes": ["!dependencies"],
-            "groupName": "non-runtime dependencies",
-            "rangeStrategy": "bump"
-        },
-        {
-            "description": "Automerge safe updates (non-breaking by default)",
-            "matchUpdateTypes": ["digest", "minor", "patch", "pin", "pinDigest"],
+            "rangeStrategy": "pin",
             "automerge": true,
-            "platformAutomerge": true,
-            "addLabels": ["minor-update"]
-        },
-        {
-            "description": "Major updates require manual review",
-            "matchUpdateTypes": ["major"],
-            "automerge": false,
-            "platformAutomerge": false,
-            "addLabels": ["major-update", "manual-review"]
-        },
-        {
-            "description": "Django REST Framework is not semver-safe (minor/patch may break)",
-            "matchPackageNames": ["djangorestframework"],
-            "matchUpdateTypes": ["minor", "patch"],
-            "automerge": false,
-            "platformAutomerge": false,
-            "addLabels": ["major-update", "manual-review"],
-            "prBodyNotes": ["Django REST Framework does not strictly follow semver. Minor and patch releases may contain breaking changes."]
+            "platformAutomerge": true
         },
         {
             "description": "Keep GitHub Actions updates organized",
             "matchManagers": ["github-actions", "custom.regex"],
             "dependencyDashboardCategory": "GitHub Actions",
-            "commitMessageTopic": "GitHub Actions dependencies"
+            "commitMessageTopic": "GitHub Actions dependencies",
+            "automerge": true,
+            "platformAutomerge": true
+        },
+        {
+            "description": "Automerge non-runtime regex-managed updates",
+            "matchManagers": ["custom.regex"],
+            "matchPackageNames": ["!python"],
+            "automerge": true,
+            "platformAutomerge": true
         }
     ]
 }
