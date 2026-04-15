@@ -56,6 +56,7 @@ Release Checklist
 5. **Update the changelog.**
 
    Add a dated entry to :doc:`/reference/changelog` summarising user-visible changes.
+   See :ref:`changelog-format` below for the expected format.
 
 6. **Bump the version number** in ``pyproject.toml`` using Poetry:
 
@@ -69,77 +70,90 @@ Release Checklist
    .. code-block:: bash
 
       git add pyproject.toml docs/reference/changelog.rst
-      git commit -m "Release vX.Y.Z"
+      git commit -m "Bump version: vX.Y.Z"
 
 8. **Open and merge pull request.**
 
    Now open a pull request to merge the release preparation branch into main. At this
-   stage Copilot will review the branch, code quality and security will be scanned and
-   unit tests will run. Usually you will need to push a few more commits to the release
-   branch (which will automatically appear in the PR and retrigger quality checks).
+   stage Copilot will review the branch, code quality and security will be scanned,
+   documentation will be built, and unit tests will run. Usually you will need to
+   push a few more commits to the release branch (which will automatically appear in
+   the PR and retrigger quality checks).
 
    Once all is green, merge the pull request into main.
 
-9. **Tag the commit** using the ``vX.Y.Z`` naming convention:
+9. **Tag the commit in order to trigger the release workflow.**
 
-   Checkout the main branch and tag the merge commit.
+   Checkout the main branch and tag the merge commit, then push the tag to GitHub:
 
    .. code-block:: bash
 
+      git checkout main
+      git pull
       git tag vX.Y.Z
-      git push origin main --tags
+      git push origin --tags
 
-10. **Publish a GitHub Release:**
+   The ``.github/workflows/release.yml`` workflow will automatically:
 
-      Create a release in GitHub using the ``vX.Y.Z`` tag you just pushed.
+   - Verify the tag version matches ``pyproject.toml``
+   - Run the full test suite and build the documentation again (for safety)
+   - Build source distribution (``.tar.gz``) and wheel (``.whl``) artifacts
+   - Generate a CycloneDX SBOM (``sbom.cyclonedx.json``)
+   - Create a GitHub release with release notes extracted from the changelog
+   - Publish the package to PyPI
 
-      - Title: ``vX.Y.Z``
-      - Description: summarize user-facing changes from :doc:`/reference/changelog`
-      - Comparison link: ``https://github.com/<org>/<repo>/compare/vX.Y.(Z-1)...vX.Y.Z``
+   Monitor the workflow run in the **Actions** tab.
 
-      Ensure this is a full release (not a draft) once verified.
+.. _changelog-format:
 
-11. **Build distribution artifacts:**
+Changelog Format
+----------------
 
-   .. code-block:: bash
+The changelog is located in ``docs/reference/changelog.rst`` and uses
+reStructuredText (RST) formatting. Each version entry must follow this structure,
+allowing the release workflow to extract the changelog entries for the GitHub
+release page.
 
-      poetry build
+.. code-block:: rst
 
-   This creates both a source distribution (``sdist``) and a wheel in the
-   ``dist/`` directory. Inspect the output to confirm the expected files are
-   present.
+   X.Y.Z (Month Year)
+   ^^^^^^^^^^^^^^^^^^
 
-12. **Publish to PyPI:**
+   - Change 1
+   - Change 2
+   - Change 3
 
-   .. code-block:: bash
+**Guidelines:**
 
-      poetry publish
+- Use the exact version number (e.g., ``2.1.0``) without the ``v`` prefix.
+- Add the release date in parentheses (e.g., ``(April 2025)``).
+- Add underline using ``^`` characters of same length.
+- List changes as bullet points with clear, user-facing descriptions.
+- Start descriptions with the affected component (e.g., "Fixed bug in
+  ``FlexFieldsFilterBackend``...").
+- Group related changes together logically.
 
-   You will need a PyPI API token configured locally. Run
-   ``poetry config pypi-token.pypi <token>`` once to store it, or set the
-   ``POETRY_PYPI_TOKEN_PYPI`` environment variable.
+**Pre-releases:**
 
-   The PyPI test environment must first be configured:
+For pre-release versions (alpha, beta, release candidate), use the extended
+version format in the tag and changelog:
 
-   .. code-block:: bash
+.. code-block:: bash
 
-      poetry config repositories.testpypi https://test.pypi.org/legacy/
-      poetry config pypi-token.testpypi <token>
+   git tag v2.1.0-pre1
+   git tag v2.1.0-rc1
 
-   Then packages can be published with:
+Update the changelog accordingly:
 
-   .. code-block:: bash
+.. code-block:: rst
 
-      poetry publish -r testpypi
+   2.1.0-pre1 (April 2025)
+   ^^^^^^^^^^^^^^^^^^^^^^
 
-13. **Verify the release** on PyPI and confirm the package installs cleanly:
+   - Preview of upcoming features...
 
-    Create a temporary directory and run the following commands to verify the release.
-
-   .. code-block:: bash
-
-      pip install --upgrade drf-flex-fields2
-      python -c "import importlib.metadata as im; print(im.version('drf-flex-fields2'))"
+The release workflow will automatically detect pre-releases and mark them as
+such in GitHub.
 
 Read the Docs
 -------------

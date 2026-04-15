@@ -1,0 +1,139 @@
+name: "Release"
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+    id-token: write
+
+jobs:
+    validate-tag:
+        name: "Validate release tag"
+        runs-on: ubuntu-latest
+
+        outputs:
+            version: ${{ steps.version.outputs.version }}
+            is-prerelease: ${{ steps.version.outputs.is-prerelease }}
+
+        steps:
+            - name: "Extract version from tag"
+              id: version
+              shell: bash
+              run: |
+                  TAG="${{ github.ref_name }}"
+                  if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+                    echo "❌ Invalid tag format: $TAG"
+                    echo "Expected format: v1.2.3 or v1.2.3-pre1"
+                    exit 1
+                  fi
+                  VERSION="${TAG:1}"  # Remove 'v' prefix
+                  echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+                  echo "is-prerelease=$(echo "$VERSION" | grep -q -- '-' && echo 'true' || echo 'false')" >> "$GITHUB_OUTPUT"
+
+    run-full-tests:
+        name: "Run full test suite"
+        needs: validate-tag
+        uses: ./.github/workflows/run-tests-full.yml
+
+    build-docs:
+        name: "Build documentation"
+        needs: validate-tag
+        uses: ./.github/workflows/build-docs.yml
+
+    release:
+        name: "Build and publish release"
+        needs:
+            - validate-tag
+            - run-full-tests
+            - build-docs
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: "Checkout code"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
+              with:
+                  setup-python: "true"
+                  poetry-install-with: ""
+
+            - name: "Verify tag matches pyproject.toml version"
+              shell: bash
+              env:
+                  EXPECTED_VERSION: ${{ needs.validate-tag.outputs.version }}
+              run: |
+                  TOML_VERSION=$(grep '^version = ' pyproject.toml | sed 's/version = "//' | sed 's/".*//')
+                  if [ "$TOML_VERSION" != "$EXPECTED_VERSION" ]; then
+                    echo "❌ Version mismatch!"
+                    echo "Tag version: $EXPECTED_VERSION"
+                    echo "pyproject.toml version: $TOML_VERSION"
+                    exit 1
+                  fi
+                  echo "✓ Version verified: $TOML_VERSION"
+
+            - name: "Build distribution packages"
+              run: poetry build
+
+            - name: "Generate CycloneDX SBOM"
+              run: |
+                  poetry run python -m pip install cyclonedx-bom
+                  poetry run cyclonedx-py poetry --only main --of JSON -o sbom.cyclonedx.json
+
+            - name: "Parse changelog for release notes"
+              id: changelog
+              env:
+                  VERSION: ${{ needs.validate-tag.outputs.version }}
+              shell: python
+              run: |
+                  import os
+                  import re
+
+                  version = os.environ["VERSION"]
+                  output_file = os.environ["GITHUB_OUTPUT"]
+
+                  with open("docs/reference/changelog.rst") as f:
+                      content = f.read()
+
+                  # Find the section for this version
+                  # Matches: "X.Y.Z (Month Year)" optionally followed by underline with ^/=/- characters
+                  # Captures everything until the next version section
+                  pattern = (
+                      rf"^{re.escape(version)}\s*\([^)]+\)(?:\n[=^`~\-]+)?\n\n"  # Header with optional underline
+                      r"((?:.*\n)*?)"  # Content (non-greedy)
+                      r"(?=^[0-9]+\.[0-9]+\.[0-9]+|^[a-zA-Z]+-[a-zA-Z]|\Z)"  # Stop at next version or section
+                  )
+
+                  match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
+
+                  if match:
+                      notes = match.group(1).strip()
+                      # Ensure it ends properly
+                      if notes:
+                          notes = "\n".join(line for line in notes.split("\n") if line.strip()).strip()
+                  else:
+                      notes = f"Release {version}"
+
+                  # Write to GITHUB_OUTPUT using the EOF delimiter for multiline values
+                  with open(output_file, "a") as f:
+                      f.write(f"notes<<EOF\n{notes}\nEOF\n")
+
+            - name: "Create GitHub Release"
+              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v0.1.16
+              with:
+                  tag_name: ${{ github.ref_name }}
+                  name: ${{ github.ref_name }}
+                  body: ${{ steps.changelog.outputs.notes }}
+                  prerelease: ${{ needs.validate-tag.outputs.is-prerelease }}
+                  files: |
+                      dist/drf_flex_fields2-*.tar.gz
+                      dist/drf_flex_fields2-*.whl
+                      sbom.cyclonedx.json
+
+            - name: "Publish to PyPI"
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  skip-existing: false

@@ -35,6 +35,36 @@ following permissions:
 - Read access to metadata
 - Read and write access to code, issues, pull requests, and workflows
 
+PyPI Trusted Publisher (OIDC)
+-----------------------------
+
+Instead of using long-lived API tokens, the release workflow uses `PyPI's OIDC
+Trusted Publisher <https://docs.pypi.org/trusted-publishers/>`_ feature to
+securely publish packages to PyPI without storing credentials in repository
+secrets.
+
+To set up the trusted publisher:
+
+1. Log in to `PyPI <https://pypi.org/>`_ with an account that has admin access
+   to the ``drf-flex-fields2`` project.
+
+2. Navigate to the project settings and select **Publishing** or **Trusted
+   publishers**.
+
+3. Click **Add a new trusted publisher** and configure it as follows:
+
+   - **Publisher name**: `GitHub`
+   - **Repository owner**: `openbook-education`
+   - **Repository name**: `drf-flex-fields2`
+   - **Workflow name**: `release.yml`
+   - **Environment name**: (leave blank or use default)
+
+4. Confirm and save the configuration.
+
+Once configured, the ``.github/workflows/release.yml`` workflow will
+authenticate to PyPI using OpenID Connect (OIDC) and can publish packages
+without any API tokens stored in the repository.
+
 Branch Protection Rules
 -----------------------
 
@@ -68,6 +98,11 @@ The repository currently uses a small workflow set:
 - ``.github/workflows/run-tests-dummy.yml``: Lightweight success path for
   pull requests without relevant Python/package/workflow changes.
 - ``.github/workflows/run-renovate.yml``: Weekly and on-demand Renovate run.
+- ``.github/workflows/build-docs.yml``: Builds documentation on changes to
+  the documentation source or public API.
+- ``.github/workflows/release.yml``: Automatically publishes releases to PyPI
+  when a version tag (e.g., ``v2.0.0``) is pushed to the default branch. See
+  :doc:`/maintainers/versioning-and-releases` for details.
 
 Automatically request a Copilot code review
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
