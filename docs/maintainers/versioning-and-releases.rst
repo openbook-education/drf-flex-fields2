@@ -37,7 +37,7 @@ Release Checklist
 
    All CI checks must pass before tagging.
 
-2. **Create release issue.**
+2. **Create release issue (recommended).**
 
    Create a new issue for the release and describe remaining work to be done before
    a new version is released. You don't need to repeat the individual release steps.

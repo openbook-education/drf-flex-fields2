@@ -10,15 +10,15 @@ This page documents how ``drf-flex-fields2`` manages dependency updates.
 Runtime Dependencies
 --------------------
 
-``drf-flex-fields2`` is intentionally small. At runtime we only rely on:
+``drf-flex-fields2`` is intentionally small. At runtime it only relies on:
 
 - Django
 - Django REST Framework
 
 No other runtime dependencies are required.
 
-Because this project is a reusable library rather than an application, we keep
-runtime ranges deliberately wide and only define minimum versions.
+Because this project is a reusable library rather than an application, runtime
+ranges are kept deliberately wide and only minimum versions are defined.
 
 Open ranges for runtime dependencies
 ------------------------------------
@@ -26,7 +26,7 @@ Open ranges for runtime dependencies
 Since Django and Django REST Framework are imported in the library code, they
 are treated as runtime dependencies under Python packaging best practices.
 
-The minimum versions are tracked by policy:
+The minimum versions are tracked by policy and currently set to:
 
 - Django ``>=`` most recent LTS release
 - Django REST Framework ``>=`` major release from about one year ago
@@ -38,15 +38,15 @@ because the first segment changes infrequently.
 
 No upper bounds are set for runtime dependencies. The default expectation is
 forward compatibility with newer Django and Django REST Framework releases. If
-an upstream release introduces an incompatibility, we detect it proactively
-through CI and release a compatibility update.
+an upstream release introduces an incompatibility, it is detected proactively
+through CI and a compatibility update is published.
 
 Non-Runtime Dependencies
 ------------------------
 
 Development and documentation dependencies are treated differently. They are
-not part of the library's public compatibility contract, so we generally bump
-them to the most recent available version.
+not part of the library's public compatibility contract, so they are generally
+bumped to the most recent available version.
 
 This applies to dependencies such as:
 
@@ -58,44 +58,50 @@ Automated Updates With Renovate
 -------------------------------
 
 `Renovate <https://docs.renovatebot.com/>`_ regularly checks the repository for
-dependency updates.
+dependency updates. Renovate is run by ``.github/workflows/run-renovate.yml``
+(scheduled weekly and available through manual dispatch). The strategy is:
 
-Our Renovate configuration follows these rules:
+- Runtime dependencies (Django, Django REST Framework, Python) are tracked as
+  manual work through the Dependency Dashboard issue and draft PRs. Maintainers
+  perform runtime range and matrix updates manually.
+- Non-runtime Poetry dependencies are pinned to exact versions and auto-merged
+  after required status checks pass.
+- GitHub Actions dependencies are updated and auto-merged after required status
+  checks pass.
 
-- Runtime dependencies (Django, Django REST Framework, Python) are tracked in
-  the Dependency Dashboard and require manual approval before Renovate may
-  create a pull request.
-- A dedicated issue (``Runtime dependency updates available``) is automatically
-  created or updated whenever pending runtime updates are detected, so maintainers
-  do not need to proactively monitor the dashboard.
-- Non-runtime Poetry dependencies are grouped and pinned to exact versions,
-  then auto-merged after required status checks pass.
-- GitHub Actions updates are auto-merged after required status checks pass.
-
-When Renovate opens an auto-merge pull request, the full CI test suite runs
-automatically. Auto-merge therefore only happens after repository checks succeed.
+When Renovate opens an auto-merge pull request, required repository checks must
+pass before merge.
 
 Test Strategy For Dependency Updates
 ------------------------------------
 
-We validate the open ranges with ``nox`` by testing lower and upper tracked
-dependency combinations for Django and Django REST Framework, including
-cross-combinations:
+Regular compatibility testing is split across GitHub Actions and ``nox``:
+
+- GitHub Actions runs the workflow for each supported Python version.
+- ``nox`` runs the Django/DRF compatibility matrix.
+
+The ``nox`` matrix validates lower and upper tracked combinations for Django
+and Django REST Framework, including cross-combinations:
 
 - min Django + min DRF
 - max Django + max DRF
 - min Django + max DRF
 - max Django + min DRF
 
-In CI, this matrix is executed across the last three supported Python versions.
 This reduces the risk of regressions at supported boundaries while still
-keeping maintenance manageable.
+keeping maintenance manageable. Additionally, the matrix validations can
+be run locally with the command ``poetry run nox``.
 
 Manual Maintenance
 ------------------
 
-When a new major Python version or a new major Django version is released, maintainers
-must manually update the Trove classifiers in ``pyproject.toml``.
+When a new supported Python or runtime dependency line is adopted, maintainers
+must manually update all affected compatibility declarations, including:
 
-Renovate can update dependency constraints, but it will not infer or adjust the
-package metadata that declares official support.
+- dependency constraints in ``pyproject.toml``
+- Python matrix entries in ``.github/workflows/run-tests-full.yml``
+- Django/DRF bounds in ``noxfile.py``
+- Trove classifiers in ``pyproject.toml``
+
+Renovate can suggest relevant changes, but it will not infer or safely update
+this full compatibility contract automatically.

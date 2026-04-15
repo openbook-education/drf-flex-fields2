@@ -19,8 +19,8 @@ suggested branch name when creating the branch within an issue):
 - ``<issue>/quality/<short-description>``
 - …
 
-Pull request expectations
--------------------------
+Pull request
+------------
 
 1. Link relevant issue in the PR description. Ideally open an issue, first.
 2. Describe behavior changes and optionally test coverage, if not obvious from the issue.
@@ -32,8 +32,13 @@ Checks and review
 -----------------
 
 - Required CI checks must pass.
-- Full compatibility tests run through ``poetry run nox`` across the Django/DRF dependency matrix.
-- The CI test workflow additionally runs this through a Python version matrix (last three versions).
+- The ``tests`` status check from ``.github/workflows/run-tests.yml`` is the
+  required branch protection check.
+- For relevant code changes, full compatibility tests run through ``poetry run
+  nox`` across the Django/DRF dependency matrix.
+- The full test workflow executes for each supported Python version.
+- For non-relevant changes, the dummy workflow path is used to satisfy branch
+  protection without running the full suite.
 - Coverage checks must remain at or above the configured threshold.
 - Copilot review is requested automatically.
 - Manual maintainer review confirms behavior, tests, and documentation quality.
@@ -45,12 +50,19 @@ Review focus areas:
 - API/documentation consistency
 - Clarity and maintainability
 
-Merge and follow-up
--------------------
+Runtime dependency update flow
+------------------------------
 
-1. Merge after review conditions are satisfied.
-2. Delete merged branch.
-3. Verify release notes/changelog coverage before the next release.
+Runtime dependency updates (Django, Django REST Framework, Python support line)
+are handled manually from Renovate's Dependency Dashboard issue or draft PRs.
+
+For each runtime update cycle:
+
+1. Update constraints in ``pyproject.toml``.
+2. Update Django/DRF test bounds in ``noxfile.py``.
+3. Update the Python CI matrix in ``.github/workflows/run-tests-full.yml``.
+4. Update classifiers in ``pyproject.toml`` where needed.
+5. Run tests and documentation checks, then open a PR.
 
 Release handoff
 ---------------
