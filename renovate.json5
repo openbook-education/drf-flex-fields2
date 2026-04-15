@@ -11,7 +11,12 @@
     ],
     "timezone": "Europe/Berlin",
     "dependencyDashboardTitle": "Dependency Dashboard",
-    "enabledManagers": ["github-actions", "poetry", "custom.regex"],
+    "enabledManagers": ["github-actions", "poetry", "pip_requirements", "custom.regex"],
+    "pip_requirements": {
+        "fileMatch": [
+            "(^|/)latest-versions\\.txt$"
+        ]
+    },
     "customManagers": [
         {
             "customType": "regex",
@@ -24,6 +29,16 @@
                 "renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\ndefault:\\s*['\\\"](?<currentValue>[^'\\\"]+)['\\\"]"
             ],
             "versioningTemplate": "pep440"
+        },
+        {
+            "customType": "regex",
+            "description": "Track latest Python runtime release",
+            "managerFilePatterns": [
+                "/^latest-versions\\.txt$/"
+            ],
+            "matchStrings": [
+                "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\n#\\s*python==(?<currentValue>\\S+)"
+            ]
         }
     ],
     "labels": ["dependencies", "automated"],
@@ -60,6 +75,10 @@
         {
             "description": "Keep GitHub Actions updates organized",
             "matchManagers": ["github-actions", "custom.regex"],
+            "matchFileNames": [
+                ".github/workflows/**",
+                ".github/actions/**"
+            ],
             "dependencyDashboardCategory": "GitHub Actions",
             "commitMessageTopic": "GitHub Actions dependencies",
             "automerge": true,
@@ -68,9 +87,27 @@
         {
             "description": "Automerge non-runtime regex-managed updates",
             "matchManagers": ["custom.regex"],
+            "matchFileNames": [
+                ".github/workflows/**",
+                ".github/actions/**"
+            ],
             "matchPackageNames": ["!python"],
             "automerge": true,
             "platformAutomerge": true
+        },
+        {
+            "description": "Draft PR reminders for runtime dependency releases",
+            "matchManagers": ["pip_requirements", "custom.regex"],
+            "matchFileNames": ["latest-versions.txt"],
+            "dependencyDashboardCategory": "Runtime dependencies",
+            "commitMessageTopic": "runtime dependency tracking",
+            "draftPR": true,
+            "automerge": false,
+            "platformAutomerge": false,
+            "prBodyNotes": [
+                "This PR tracks upstream latest runtime releases and intentionally does not change compatibility minimums in pyproject.toml.",
+                "Maintainer actions:\n- Review upstream release notes.\n- Update test matrices in .github/workflows/run-tests-full.yml and noxfile.py for forward-compatibility checks.\n- Run poetry run nox and evaluate results.\n- If compatibility is confirmed, decide whether to adjust minimum constraints and classifiers in pyproject.toml."
+            ]
         }
     ]
 }

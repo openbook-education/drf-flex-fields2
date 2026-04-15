@@ -64,6 +64,12 @@ dependency updates. Renovate is run by ``.github/workflows/run-renovate.yml``
 - Runtime dependencies (Django, Django REST Framework, Python) are tracked as
   manual work through the Dependency Dashboard issue and draft PRs. Maintainers
   perform runtime range and matrix updates manually.
+- A dedicated ``latest-versions.txt`` file is used as a release tracker for
+  Python, Django, and Django REST Framework. Renovate watches this file via
+  the ``pip_requirements`` manager for Django and Django REST Framework, and
+  via a small regex rule for Python version tracking.
+- Renovate opens draft reminder PRs whenever a newer upstream release is
+  available.
 - Non-runtime Poetry dependencies are pinned to exact versions and auto-merged
   after required status checks pass.
 - GitHub Actions dependencies are updated and auto-merged after required status
@@ -71,6 +77,10 @@ dependency updates. Renovate is run by ``.github/workflows/run-renovate.yml``
 
 When Renovate opens an auto-merge pull request, required repository checks must
 pass before merge.
+
+Runtime dependency reminder pull requests are intentionally **draft** pull
+requests and include a maintainer checklist in the PR body. They are not
+auto-merged.
 
 Test Strategy For Dependency Updates
 ------------------------------------
