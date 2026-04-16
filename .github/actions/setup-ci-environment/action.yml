@@ -57,9 +57,6 @@ runs:
           # Floating poetry version can trigger "lockfile too old". As a workaround (since Poetry
           # versions locally in CI can always differ), we run `poetry lock` to regenerate it.
           run: |-
-            rm -f poetry.lock
-            poetry lock
-
             install_args=(--no-interaction --no-root)
             if [[ -n "${{ inputs.poetry-install-with }}" ]]; then
                 install_args+=(--with "${{ inputs.poetry-install-with }}")
