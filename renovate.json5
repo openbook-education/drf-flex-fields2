@@ -21,20 +21,20 @@
         {
             "customType": "regex",
             "description": "Update default Python version for setup-ci-environment action",
-            "managerFilePatterns": [
-                "/\\.github\\/workflows\\/.*\\.ya?ml$/",
-                "/\\.github\\/actions\\/.*\\/action\\.ya?ml$/"
+            "fileMatch": [
+                "^\\.github/workflows/.*\\.ya?ml$",
+                "^\\.github/actions/.*/action\\.ya?ml$"
             ],
             "matchStrings": [
-                "renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\ndefault:\\s*['\\\"](?<currentValue>[^'\\\"]+)['\\\"]"
+                "renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*default:\\s*['\\\"](?<currentValue>[^'\\\"]+)['\\\"]"
             ],
             "versioningTemplate": "pep440"
         },
         {
             "customType": "regex",
             "description": "Track latest Python runtime release",
-            "managerFilePatterns": [
-                "/^latest-versions\\.txt$/"
+            "fileMatch": [
+                "^latest-versions\\.txt$"
             ],
             "matchStrings": [
                 "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\n#\\s*python==(?<currentValue>\\S+)"
@@ -68,6 +68,7 @@
             "description": "Pin development and documentation dependencies",
             "matchManagers": ["poetry"],
             "matchDepTypes": ["!dependencies"],
+            "matchUpdateTypes": ["digest", "minor", "patch", "pin", "pinDigest"],
             "rangeStrategy": "pin",
             "automerge": true,
             "platformAutomerge": true
