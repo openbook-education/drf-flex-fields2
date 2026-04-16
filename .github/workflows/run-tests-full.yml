@@ -7,8 +7,8 @@ permissions:
     contents: read
 
 jobs:
-    run-full-test-suite:
-        name: "Run full test suite (Python ${{ matrix.python-version }})"
+    run-compatibility-matrix:
+        name: "Run compatibility matrix (Python ${{ matrix.python-version }})"
         runs-on: ubuntu-latest
         strategy:
             fail-fast: true
@@ -31,6 +31,22 @@ jobs:
             - name: "Run compatibility test matrix"
               run: |
                   poetry run nox
+
+    run-coverage:
+        name: "Run coverage check (Python 3.14)"
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: "Checkout code"
+              uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+              with:
+                  ref: ${{ github.head_ref || github.ref }}
+
+            - name: "Set up CI environment"
+              uses: ./.github/actions/setup-ci-environment
+              with:
+                  setup-python: "true"
+                  python-version: "3.14"
 
             - name: "Run coverage check"
               run: |
