@@ -18,7 +18,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 # Note update version matrix in `.github/workflows/run-tests-full.yml`, too.
-python = ">=3.12"
+python = ">=3.12,<4"
 
 # NOTE: Update versions in `noxfile.py`, too.
 django = ">=5.2"
