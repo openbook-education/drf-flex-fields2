@@ -13,12 +13,26 @@ inputs:
     python-version:
         description: "Python version to install"
         required: false
+        # renovate: datasource=python-version depName=python
         default: "3.14"
 
     poetry-version:
         description: "Poetry version to install"
         required: false
         default: "latest"
+
+    poetry-install-with:
+        description: "Comma-separated Poetry dependency groups to install via --with"
+        required: false
+        default: "dev"
+
+    # === #
+    # Git #
+    # === #
+    configure-git-author:
+        description: "Whether to configure the Git author as the github-actions bot"
+        required: false
+        default: "false"
 
 runs:
     using: "composite"
@@ -37,7 +51,6 @@ runs:
           uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
           with:
               python-version: ${{ inputs.python-version }}
-              cache: "poetry"
 
         - name: "Install Python dependencies"
           if: ${{ inputs.setup-python == 'true' }}
@@ -46,5 +59,21 @@ runs:
           run: |-
             rm -f poetry.lock
             poetry lock
-            poetry install --no-interaction --no-root --with dev
+
+            install_args=(--no-interaction --no-root)
+            if [[ -n "${{ inputs.poetry-install-with }}" ]]; then
+                install_args+=(--with "${{ inputs.poetry-install-with }}")
+            fi
+
+            poetry install "${install_args[@]}"
           shell: bash
+
+        # === #
+        # Git #
+        # === #
+        - name: "Configure Git author"
+          if: ${{ inputs.configure-git-author == 'true' }}
+          shell: bash
+          run: |
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"

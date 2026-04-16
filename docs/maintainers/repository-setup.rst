@@ -23,17 +23,47 @@ secret was created:
    * - Secret name
      - Description
    * - ``RENOVATE_TOKEN``
-     - Fine-grained personal access token for Renovate and SBOM automation.
+     - Fine-grained personal access token for the scheduled Renovate workflow.
 
-``RENOVATE_TOKEN`` was configured so Renovate and related SBOM automation could
-open pull requests and merge auto-mergeable dependency updates after checks
-passed.
+``RENOVATE_TOKEN`` is used by ``.github/workflows/run-renovate.yml`` so
+Renovate can open dependency pull requests and update the Dependency Dashboard
+issue.
 
 The token belongs to a user with write access to the repository and has the
 following permissions:
 
 - Read access to metadata
 - Read and write access to code, issues, pull requests, and workflows
+
+PyPI Trusted Publisher (OIDC)
+-----------------------------
+
+Instead of using long-lived API tokens, the release workflow uses `PyPI's OIDC
+Trusted Publisher <https://docs.pypi.org/trusted-publishers/>`_ feature to
+securely publish packages to PyPI without storing credentials in repository
+secrets.
+
+To set up the trusted publisher:
+
+1. Log in to `PyPI <https://pypi.org/>`_ with an account that has admin access
+   to the ``drf-flex-fields2`` project.
+
+2. Navigate to the project settings and select **Publishing** or **Trusted
+   publishers**.
+
+3. Click **Add a new trusted publisher** and configure it as follows:
+
+   - **Publisher name**: `GitHub`
+   - **Repository owner**: `openbook-education`
+   - **Repository name**: `drf-flex-fields2`
+   - **Workflow name**: `release.yml`
+   - **Environment name**: (leave blank or use default)
+
+4. Confirm and save the configuration.
+
+Once configured, the ``.github/workflows/release.yml`` workflow will
+authenticate to PyPI using OpenID Connect (OIDC) and can publish packages
+without any API tokens stored in the repository.
 
 Branch Protection Rules
 -----------------------
@@ -54,6 +84,41 @@ code changed.
 
 This setup kept branch protection strict for package changes while avoiding
 expensive test runs for unrelated repository maintenance.
+
+CI Workflows
+------------
+
+The repository currently uses a small workflow set:
+
+- ``.github/workflows/run-tests.yml``: Entry workflow to run the test suite
+  depending on which files have changed – either the full test suite or a
+  lightweight dummy test workflow.
+- ``.github/workflows/run-tests-full.yml``: Full test and coverage run across
+  the supported Python matrix.
+- ``.github/workflows/run-tests-dummy.yml``: Lightweight success path for
+  pull requests without relevant Python/package/workflow changes.
+- ``.github/workflows/run-renovate.yml``: Weekly and on-demand Renovate run.
+- ``.github/workflows/build-docs.yml``: Builds documentation on changes to
+  the documentation source or public API.
+- ``.github/workflows/release.yml``: Automatically publishes releases to PyPI
+  when a version tag (e.g., ``v2.0.0``) is pushed to the default branch. See
+  :doc:`/maintainers/versioning-and-releases` for details.
+
+Release Tag Signature Enforcement
+---------------------------------
+
+The release workflow enforces signed, annotated tags before any artifacts are
+built or published.
+
+- Tags must be created with ``git tag -s`` (annotated + signed).
+- Lightweight tags are rejected.
+- Tags with missing or invalid signatures are rejected.
+
+This check is performed in ``.github/workflows/release.yml`` via the GitHub API
+verification metadata for the tag object.
+
+Signed commits are also recommended for maintainers, but they are not enforced
+by the release workflow.
 
 Automatically request a Copilot code review
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,64 +151,13 @@ The project was configured in Read the Docs with the following settings:
 No additional GitHub secret is required for tag-triggered Read the Docs builds
 because the repository was connected through the native GitHub integration.
 
-Local Development Workflow
---------------------------
-
-Poetry was adopted as the single entry point for local development, tests, and
-documentation builds.
-
-Dependencies, including documentation tools, were installed with:
-
-.. code-block:: bash
-
-  poetry install --no-interaction --with docs
-
-Tests were run from the project root with:
-
-.. code-block:: bash
-
-  poetry run python src/manage.py test
-
-Documentation was built locally with:
-
-.. code-block:: bash
-
-  poetry run sphinx-build -W -T -v docs/ /tmp/sphinx-test-build
-
-The ``docs/`` directory was established as the canonical documentation source
-location.
-
-Release, Tagging, and Publishing
---------------------------------
-
-The release process was standardized as follows to keep the package and
-documentation in sync:
-
-1. The version in ``pyproject.toml`` was updated, for example with
-   ``poetry version patch`` or ``poetry version 2.1.0``.
-2. Release notes were added to ``docs/changelog.rst``.
-3. Tests and the documentation build were run locally.
-4. The release changes were committed and an annotated tag such as ``v2.1.0``
-   was created.
-5. The branch and tag were pushed to GitHub with ``git push`` and
-   ``git push --tags``.
-6. The package was published when required:
-
-   .. code-block:: bash
-
-      poetry build
-      poetry publish
-
-With the automation rules above in place, the pushed Git tag triggered the
-corresponding Read the Docs version.
-
 Root Configuration Files
 ------------------------
 
 ``pyproject.toml``
 ^^^^^^^^^^^^^^^^^^
 
-This file was established as the central project configuration managed by
+This file is the central project configuration managed by
 `Poetry <https://python-poetry.org/>`_. It contains:
 
 - Project metadata such as package name, version, authors, and repository URL
@@ -154,16 +168,17 @@ This file was established as the central project configuration managed by
 ``poetry.lock``
 ^^^^^^^^^^^^^^^
 
-This file was generated by Poetry and committed to the repository so every
+This file is generated by Poetry and committed to the repository so every
 environment would resolve identical dependency versions.
 
 ``renovate.json5``
 ^^^^^^^^^^^^^^^^^^
 
-This file was added as the configuration for
+This file is the configuration for
 `Renovate <https://docs.renovatebot.com/>`_. It manages Poetry and GitHub
-Actions dependencies, separates major from minor upgrades, and supports
-automated merges for safe updates.
+Actions dependencies and supports auto-merging for non-runtime updates after
+required checks pass. Runtime dependency updates are tracked for manual
+maintenance.
 
 ``docs/conf.py``
 ^^^^^^^^^^^^^^^^
@@ -174,7 +189,7 @@ extensions, the sphinx-rtd-theme, autoapi directories, and build options.
 ``.readthedocs.yaml``
 ^^^^^^^^^^^^^^^^^^^^^
 
-This file was added as the Read the Docs build configuration. It installs
+This file is the Read the Docs build configuration. It installs
 Poetry after environment creation, overrides the install step to install the
 project together with the docs dependency group, and builds the site with
 Sphinx.
@@ -182,22 +197,22 @@ Sphinx.
 ``docs/``
 ^^^^^^^^^
 
-This directory was designated as the source location for the documentation
+This directory is the source location for the documentation
 site. It contains the user guide, API reference pages, changelog, and
 maintainer notes.
 
 ``.github/workflows/build-docs.yml``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This workflow was added to build the Sphinx site in CI on documentation,
+This workflow builds the Sphinx site in CI on documentation,
 packaging, and public API changes. That keeps local docs changes aligned with
 what Read the Docs builds.
 
 ``.github/workflows/run-tests.yml``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This workflow was added to route pull requests either to the full Django test
-suite or to the dummy check, depending on whether relevant code changed.
+This workflow routes pull requests either to the full Django test suite or to
+the dummy check, depending on whether relevant code changed.
 
 ``.editorconfig``
 ^^^^^^^^^^^^^^^^^
