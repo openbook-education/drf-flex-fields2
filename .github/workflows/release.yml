@@ -115,8 +115,9 @@ jobs:
               id: changelog
               env:
                   VERSION: ${{ needs.validate-tag.outputs.version }}
-              shell: python
+              shell: bash
               run: |
+                  poetry run python - <<'PY'
                   import os
                   import re
 
@@ -148,6 +149,7 @@ jobs:
                   # Write to GITHUB_OUTPUT using the EOF delimiter for multiline values
                   with open(output_file, "a") as f:
                       f.write(f"notes<<EOF\n{notes}\nEOF\n")
+                  PY
 
             - name: "Create GitHub Release"
               uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v0.1.16
