@@ -20,18 +20,6 @@
     "customManagers": [
         {
             "customType": "regex",
-            "description": "Update default Python version for setup-ci-environment action",
-            "fileMatch": [
-                "^\\.github/workflows/.*\\.ya?ml$",
-                "^\\.github/actions/.*/action\\.ya?ml$"
-            ],
-            "matchStrings": [
-                "renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*default:\\s*['\\\"](?<currentValue>[^'\\\"]+)['\\\"]"
-            ],
-            "versioningTemplate": "pep440"
-        },
-        {
-            "customType": "regex",
             "description": "Track latest Python runtime release",
             "fileMatch": [
                 "^latest-versions\\.txt$"
@@ -75,7 +63,7 @@
         },
         {
             "description": "Keep GitHub Actions updates organized",
-            "matchManagers": ["github-actions", "custom.regex"],
+            "matchManagers": ["github-actions"],
             "matchFileNames": [
                 ".github/workflows/**",
                 ".github/actions/**"

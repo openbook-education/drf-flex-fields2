@@ -17,10 +17,11 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-# Note update version matrix in `.github/workflows/run-tests-full.yml`, too.
+# NOTE: update version matrix in .github/workflows/run-tests-full.yml, too.
+# NOTE: Update default python version in .github/actions/setup-ci-environment/action.yml, too.
 python = ">=3.12,<4"
 
-# NOTE: Update versions in `noxfile.py`, too.
+# NOTE: Update versions in noxfile.py, too.
 django = ">=5.2"
 djangorestframework = ">=3.16.0"
 
