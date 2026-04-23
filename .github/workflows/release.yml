@@ -129,14 +129,14 @@ jobs:
 
                   # Find the section for this version
                   # Matches: "X.Y.Z (Month Year)" optionally followed by underline with ^/=/- characters
-                  # Captures everything until the next version section
+                  # Captures everything until the next RST section header (version or named section)
                   pattern = (
                       rf"^{re.escape(version)}\s*\([^)]+\)(?:\n[=^`~\-]+)?\n\n"  # Header with optional underline
-                      r"((?:.*\n)*?)"  # Content (non-greedy)
-                      r"(?=^[0-9]+\.[0-9]+\.[0-9]+|^[a-zA-Z]+-[a-zA-Z]|\Z)"  # Stop at next version or section
+                      r"((?:[^\n]*\n)*?)"  # Content (non-greedy, one line at a time)
+                      r"(?=^[0-9]+\.[0-9]+\.[0-9]+|^[^\n]+\n[=^`~\-]{3,}|\Z)"  # Stop at next version or RST section
                   )
 
-                  match = re.search(pattern, content, re.MULTILINE | re.DOTALL)
+                  match = re.search(pattern, content, re.MULTILINE)
 
                   if match:
                       notes = match.group(1).strip()
