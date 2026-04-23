@@ -8,7 +8,7 @@ Repository-level and external service setup remains in
 Prerequisites
 -------------
 
-- A supported Python version
+- A Python version within the current support window (last three Python versions)
 - Poetry package manager
 
 Install dependencies
@@ -21,7 +21,13 @@ Install dependencies
 Run tests
 ---------
 
-Run the full suite:
+Run the test suite and dependency compatibility matrix with nox:
+
+.. code-block:: bash
+
+    poetry run nox
+
+Run the full suite without matrix testing:
 
 .. code-block:: bash
 

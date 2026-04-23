@@ -1,0 +1,14 @@
+# Runtime dependency release tracker for Renovate reminder PRs.
+# These pins represent the newest known upstream releases and are intentionally
+# independent from minimum compatibility constraints in pyproject.toml.
+
+# NOTE: Update minimum required versions in pyproject.toml and noxfile.py.
+# In noxfile.py also update the maximum versions to the versions shown below.
+
+Django==6.0.4
+
+djangorestframework==3.17.1
+
+# Python is tracked separately via regex because it is not a pip requirement dependency.
+# renovate: datasource=python-version depName=python versioning=pep440
+# python==3.14.0

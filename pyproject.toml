@@ -17,9 +17,13 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
+# NOTE: update version matrix in .github/workflows/run-tests-full.yml, too.
+# NOTE: Update default python version in .github/actions/setup-ci-environment/action.yml, too.
 python = ">=3.12,<4"
-django = ">=5.0,<=6.0.4"
-djangorestframework = ">=3.14.0,<3.17.1"
+
+# NOTE: Update versions in noxfile.py, too.
+django = ">=5.2"
+djangorestframework = ">=3.16.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^8.2.3"
@@ -29,6 +33,7 @@ sphinx-llm = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "^7.13.5"
+nox = "^2025.5.1"
 
 [tool.coverage.run]
 branch = true

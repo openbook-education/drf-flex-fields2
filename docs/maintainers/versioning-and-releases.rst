@@ -37,7 +37,7 @@ Release Checklist
 
    All CI checks must pass before tagging.
 
-2. **Create release issue.**
+2. **Create release issue (recommended).**
 
    Create a new issue for the release and describe remaining work to be done before
    a new version is released. You don't need to repeat the individual release steps.
@@ -56,6 +56,7 @@ Release Checklist
 5. **Update the changelog.**
 
    Add a dated entry to :doc:`/reference/changelog` summarising user-visible changes.
+   See :ref:`changelog-format` below for the expected format.
 
 6. **Bump the version number** in ``pyproject.toml`` using Poetry:
 
@@ -69,67 +70,116 @@ Release Checklist
    .. code-block:: bash
 
       git add pyproject.toml docs/reference/changelog.rst
-      git commit -m "Release vX.Y.Z"
+      git commit -m "Bump version: vX.Y.Z"
 
 8. **Open and merge pull request.**
 
    Now open a pull request to merge the release preparation branch into main. At this
-   stage Copilot will review the branch, code quality and security will be scanned and
-   unit tests will run. Usually you will need to push a few more commits to the release
-   branch (which will automatically appear in the PR and retrigger quality checks).
+   stage Copilot will review the branch, code quality and security will be scanned,
+   documentation will be built, and unit tests will run. Usually you will need to
+   push a few more commits to the release branch (which will automatically appear in
+   the PR and retrigger quality checks).
 
    Once all is green, merge the pull request into main.
 
-9. **Tag the commit** using the ``vX.Y.Z`` naming convention:
+9. **Tag the commit in order to trigger the release workflow.**
 
-   Checkout the main branch and tag the merge commit.
-
-   .. code-block:: bash
-
-      git tag vX.Y.Z
-      git push origin main --tags
-
-10. **Build distribution artifacts:**
+   Checkout the main branch and create a **signed annotated tag** for the merge
+   commit, then push the tag to GitHub:
 
    .. code-block:: bash
 
-      poetry build
+      git checkout main
+      git pull
+      git tag -s vX.Y.Z -m "Release vX.Y.Z"
+      git push origin --tags
 
-   This creates both a source distribution (``sdist``) and a wheel in the
-   ``dist/`` directory. Inspect the output to confirm the expected files are
-   present.
+   The ``.github/workflows/release.yml`` workflow will automatically:
 
-11. **Publish to PyPI:**
+   - Verify the tag is a signed annotated tag with a valid signature
+   - Verify the tag version matches ``pyproject.toml``
+   - Run the full test suite and build the documentation again (for safety)
+   - Build source distribution (``.tar.gz``) and wheel (``.whl``) artifacts
+   - Generate a CycloneDX SBOM (``sbom.cyclonedx.json``)
+   - Create a GitHub release with release notes extracted from the changelog
+   - Publish the package to PyPI
 
-   .. code-block:: bash
+   Monitor the workflow run in the **Actions** tab.
 
-      poetry publish
+.. _changelog-format:
 
-   You will need a PyPI API token configured locally. Run
-   ``poetry config pypi-token.pypi <token>`` once to store it, or set the
-   ``POETRY_PYPI_TOKEN_PYPI`` environment variable.
+Changelog Format
+----------------
 
-   The PyPI test environment must first be configured:
+The changelog is located in ``docs/reference/changelog.rst`` and uses
+reStructuredText (RST) formatting. Each version entry must follow this structure,
+allowing the release workflow to extract the changelog entries for the GitHub
+release page.
 
-   .. code-block:: bash
+.. code-block:: rst
 
-      poetry config repositories.testpypi https://test.pypi.org/legacy/
-      poetry config pypi-token.testpypi <token>
+   X.Y.Z (Month Year)
+   ^^^^^^^^^^^^^^^^^^
 
-   Then packages can be published with:
+   - Change 1
+   - Change 2
+   - Change 3
 
-   .. code-block:: bash
+**Guidelines:**
 
-      poetry publish -r testpypi
+- Use the exact version number (e.g., ``2.1.0``) without the ``v`` prefix.
+- Add the release date in parentheses (e.g., ``(April 2025)``).
+- Add underline using ``^`` characters of same length.
+- List changes as bullet points with clear, user-facing descriptions.
+- Start descriptions with the affected component (e.g., "Fixed bug in
+  ``FlexFieldsFilterBackend``...").
+- Group related changes together logically.
 
-12. **Verify the release** on PyPI and confirm the package installs cleanly:
+**Pre-releases:**
 
-    Create a temporary directory and run the following commands to verify the release.
+For pre-release versions (alpha, beta, release candidate), use the extended
+version format in the tag and changelog:
 
-   .. code-block:: bash
+.. code-block:: bash
 
-      pip install --upgrade drf-flex-fields2
-      python -c "import importlib.metadata as im; print(im.version('drf-flex-fields2'))"
+   git tag v2.1.0-pre1
+   git tag v2.1.0-rc1
+
+Update the changelog accordingly:
+
+.. code-block:: rst
+
+   2.1.0-pre1 (April 2025)
+   ^^^^^^^^^^^^^^^^^^^^^^
+
+   - Preview of upcoming features...
+
+The release workflow will automatically detect pre-releases and mark them as
+such in GitHub.
+
+Tag Signing Setup
+-----------------
+
+Release tags must be signed. If tag signing is not configured locally, set it
+up once before creating your next release:
+
+.. code-block:: bash
+
+   # Use your existing GPG key ID
+   git config --global user.signingkey <YOUR_GPG_KEY_ID>
+   git config --global tag.gpgSign true
+
+To list available secret keys and find your key ID:
+
+.. code-block:: bash
+
+   gpg --list-secret-keys --keyid-format=long
+
+Only signed annotated tags (``git tag -s``) are accepted by the release
+workflow.
+
+Signing commits is also recommended as a general repository security practice,
+but commit signing is currently not enforced by the release workflow.
 
 Read the Docs
 -------------
