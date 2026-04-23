@@ -1,17 +1,22 @@
 """Sphinx configuration for drf-flex-fields2 documentation."""
 
-import os
-import sys
+import os, sys, tomllib
+from pathlib import Path
 
 # Add the package source directory to sys.path so autoapi can find it.
 sys.path.insert(0, os.path.abspath(".."))
 sys.path.insert(0, os.path.abspath("../src"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "tests.settings")
 
+# Extract version string from pyproject.toml
+pyproject = Path(__file__).resolve().parents[1] / "pyproject.toml"
+
+with pyproject.open("rb") as f:
+    release = tomllib.load(f)["tool"]["poetry"]["version"]
+
 project = "drf-flex-fields2"
 author = "Dennis Schulmeister, Robert Singer"
 copyright = "drf-flex-fields2 maintainers"
-release = "2.0.0"
 
 extensions = [
     "autoapi.extension",
