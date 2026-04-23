@@ -54,8 +54,8 @@ This applies to dependencies such as:
 - Sphinx and documentation extensions
 - GitHub Actions dependencies
 
-Automated Updates With Renovate
--------------------------------
+Semi-Automated Updates With Renovate
+------------------------------------
 
 `Renovate <https://docs.renovatebot.com/>`_ regularly checks the repository for
 dependency updates. Renovate is run by ``.github/workflows/run-renovate.yml``
@@ -64,14 +64,23 @@ dependency updates. Renovate is run by ``.github/workflows/run-renovate.yml``
 - Runtime dependencies (Django, Django REST Framework, Python) are tracked as
   manual work through the Dependency Dashboard issue and draft PRs. Maintainers
   perform runtime range and matrix updates manually.
+
 - A dedicated ``latest-versions.txt`` file is used as a release tracker for
-  Python, Django, and Django REST Framework. Renovate watches this file via
-  the ``pip_requirements`` manager for Django and Django REST Framework, and
-  via a small regex rule for Python version tracking.
-- Renovate opens draft reminder PRs whenever a newer upstream release is
-  available.
+  Python, Django, and Django REST Framework. Renovate watches this file and
+  opens draft PRs whenever a newer upstream release is available. When reviewing
+  these PRs do the following:
+
+    - Check, if the minimum supported version should be bumped.
+    - Update the minimum supported versions in ``pyproject.toml``.
+    - Update the minimum and maximum versions in ``noxfile.py``.
+    - Update the Python versions in ``.github/workflows/run-tests-full.yml``.
+    - Commit the version bumps to the PR and check, if tests pass.
+
+Occasionally the trove classifiers in ``pyproject.toml`` need to be updated, too.
+
 - Non-runtime Poetry dependencies are pinned to exact versions and auto-merged
   after required status checks pass.
+
 - GitHub Actions dependencies are updated and auto-merged after required status
   checks pass.
 
@@ -101,17 +110,3 @@ and Django REST Framework, including cross-combinations:
 This reduces the risk of regressions at supported boundaries while still
 keeping maintenance manageable. Additionally, the matrix validations can
 be run locally with the command ``poetry run nox``.
-
-Manual Maintenance
-------------------
-
-When a new supported Python or runtime dependency line is adopted, maintainers
-must manually update all affected compatibility declarations, including:
-
-- dependency constraints in ``pyproject.toml``
-- Python matrix entries in ``.github/workflows/run-tests-full.yml``
-- Django/DRF bounds in ``noxfile.py``
-- Trove classifiers in ``pyproject.toml``
-
-Renovate can suggest relevant changes, but it will not infer or safely update
-this full compatibility contract automatically.

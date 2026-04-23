@@ -13,3 +13,4 @@ venv.sh
 venv/
 __pycache__
 .coverage
+.nox

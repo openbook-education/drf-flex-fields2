@@ -1,52 +1,33 @@
 """Nox sessions for Django/DRF compatibility testing."""
 
-from __future__ import annotations
-
 import nox
 
-# NOTE: Update these versions when a new Django or DRF version is released
-# as well as the versions in `pyproject.toml`.
-# Django = [Most current LTS Release … current release]
-# DRF = [Major version from one year ago … current release]
-DJANGO_MIN = "5.2"
-DJANGO_MAX = "6.0.4"
-DRF_MIN = "3.16.0"
-DRF_MAX = "3.17.1"
-
-
-# Full compatibility matrix:
-# 1. min Django + min DRF
-# 2. max Django + max DRF
-# 3. min Django + max DRF
-# 4. max Django + min DRF
-@nox.session(
-    name="tests",
-    reuse_venv=True,
-    python=False,
-)
-@nox.parametrize(
-    "django_version,drf_version",
-    [
-        (DJANGO_MIN, DRF_MIN),
-        (DJANGO_MAX, DRF_MAX),
-        (DJANGO_MIN, DRF_MAX),
-        (DJANGO_MAX, DRF_MIN),
-    ],
-)
-def tests(session: nox.Session, django_version: str, drf_version: str) -> None:
+# NOTE: Update minimum versions in pyproject.toml, too
+# NOTE: Set maximum version according to latest-versions.txt (updated by Renovate bot)
+@nox.session
+@nox.parametrize("django", [
+    nox.param("5.2", "lts"),
+    nox.param("6.0.4", "latest")
+])
+@nox.parametrize("drf", [
+    nox.param("3.16.0", id="one-year-old"),
+    nox.param("3.17.1", id="latest")
+])
+def tests(session: nox.Session, django: str, drf: str) -> None:
     """Run Django tests for one Django/DRF version combination."""
+    # Install matrix versions
+    session.install(f"django=={django}")
+    session.install(f"djangorestframework=={drf}")
 
-    session.run("poetry", "install", "--no-interaction", external=True)
-    session.run(
-        "poetry", "run",
-        "python", "-m", "pip", "install",
-        f"Django=={django_version}",
-        f"djangorestframework=={drf_version}",
-        external=True,
-    )
-    session.run(
-        "poetry", "run",
-        "python", "src/manage.py", "test", "tests",
-        env={"PYTHONPATH": "src"},
-        external=True,
-    )
+    # Install remaining packages
+    pyproject = nox.project.load_toml("pyproject.toml")
+
+    for (package, version) in pyproject["tool"]["poetry"]["dependencies"].items():
+        if package in ["python", "django", "djangorestframework"]:
+            continue
+
+        session.install(f"{package}{version}")
+
+    # Run test suite
+    session.cd("src")
+    session.run("python", "manage.py", "test")
