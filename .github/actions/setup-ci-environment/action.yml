@@ -26,6 +26,11 @@ inputs:
         required: false
         default: "dev"
 
+    poetry-install-only:
+        description: "Comma-separated Poetry dependency groups to install via --only"
+        required: false
+        default: ""
+
     # === #
     # Git #
     # === #
@@ -51,15 +56,19 @@ runs:
           uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
           with:
               python-version: ${{ inputs.python-version }}
+              cache: poetry
 
         - name: "Install Python dependencies"
           if: ${{ inputs.setup-python == 'true' }}
-          # Floating poetry version can trigger "lockfile too old". As a workaround (since Poetry
-          # versions locally in CI can always differ), we run `poetry lock` to regenerate it.
           run: |-
             install_args=(--no-interaction --no-root)
+
             if [[ -n "${{ inputs.poetry-install-with }}" ]]; then
                 install_args+=(--with "${{ inputs.poetry-install-with }}")
+            fi
+
+            if [[ -n "${{ inputs.poetry-install-only }}" ]]; then
+                install_args+=(--only "${{ inputs.poetry-install-only }}")
             fi
 
             poetry install "${install_args[@]}"

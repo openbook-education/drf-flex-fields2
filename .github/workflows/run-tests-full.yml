@@ -47,6 +47,8 @@ jobs:
               with:
                   setup-python: "true"
                   python-version: "3.14"
+                  poetry-install-with: ""
+                  poetry-install-only: "dev"
 
             - name: "Run coverage check"
               run: |
