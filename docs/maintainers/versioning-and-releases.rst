@@ -150,15 +150,18 @@ Update the changelog accordingly:
 .. code-block:: rst
 
    2.1.0-pre1 (April 2026)
-   ^^^^^^^^^^^^^^^^^^^^^^
+   ^^^^^^^^^^^^^^^^^^^^^^^
 
    - Preview of upcoming features...
 
 The release workflow will automatically detect pre-releases and mark them as
 such in GitHub.
 
-Tag Signing Setup
------------------
+Tag Signing
+-----------
+
+Setup
+^^^^^
 
 Release tags must be signed. If tag signing is not configured locally, set it
 up once before creating your next release:
@@ -180,6 +183,47 @@ workflow.
 
 Signing commits is also recommended as a general repository security practice,
 but commit signing is currently not enforced by the release workflow.
+
+Troubleshooting
+^^^^^^^^^^^^^^^
+
+If the release workflow rejects a signed tag with a reason such as ``bad_email``,
+inspect the tag metadata first:
+
+.. code-block:: bash
+
+   git cat-file -p <tag>
+
+Look for the ``tagger`` line, for example:
+
+.. code-block:: text
+
+   tagger Name <email@example.com> ...
+
+When you create a signed tag with ``git tag -s``, Git embeds the tagger identity
+from your local Git configuration. That email address must:
+
+- Be present in your GitHub account
+- Be verified in GitHub
+- Match exactly, including casing
+
+A common failure mode is that GitHub has multiple verified email addresses, but
+Git is using the wrong one via ``user.email``. This matters because Git uses
+that email for the tagger identity, while GPG signs with a key that is usually
+associated with specific UID email addresses. If the tagger email and the
+verified GitHub identity do not align, GitHub tag verification can fail.
+
+To fix this, delete the incorrect tag locally and remotely, correct your Git
+identity, then recreate and push the signed tag:
+
+.. code-block:: bash
+
+   git tag -d <tag>
+   git push origin :refs/tags/<tag>
+
+   git config user.email <correct-verified-email>
+   git tag -s <tag>
+   git push origin <tag>
 
 Read the Docs
 -------------
