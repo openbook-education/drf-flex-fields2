@@ -128,7 +128,7 @@ release page.
 **Guidelines:**
 
 - Use the exact version number (e.g., ``2.1.0``) without the ``v`` prefix.
-- Add the release date in parentheses (e.g., ``(April 2025)``).
+- Add the release date in parentheses (e.g., ``(April 2026)``).
 - Add underline using ``^`` characters of same length.
 - List changes as bullet points with clear, user-facing descriptions.
 - Start descriptions with the affected component (e.g., "Fixed bug in
@@ -149,7 +149,7 @@ Update the changelog accordingly:
 
 .. code-block:: rst
 
-   2.1.0-pre1 (April 2025)
+   2.1.0-pre1 (April 2026)
    ^^^^^^^^^^^^^^^^^^^^^^
 
    - Preview of upcoming features...
