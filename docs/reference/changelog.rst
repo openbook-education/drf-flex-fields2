@@ -4,6 +4,13 @@ Change Log
 drf-flex-fields2
 ----------------
 
+2.0.2 (April 2026)
+^^^^^^^^^^^^^^^^^^
+
+- Maintainer documentation: Troubleshooting tag signing
+- Release workflow: More stable changelog parsing
+- No user-facing changes.
+
 2.0.1 (April 2026)
 ^^^^^^^^^^^^^^^^^^
 
