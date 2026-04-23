@@ -95,7 +95,7 @@
             "platformAutomerge": false,
             "prBodyNotes": [
                 "This PR tracks upstream latest runtime releases and intentionally does not change compatibility minimums in pyproject.toml.",
-                "Maintainer actions:\n- Review upstream release notes.\n- Update test matrices in .github/workflows/run-tests-full.yml and noxfile.py for forward-compatibility checks.\n- Run poetry run nox and evaluate results.\n- If compatibility is confirmed, decide whether to adjust minimum constraints and classifiers in pyproject.toml."
+                "Maintainer actions:\n- Review upstream release notes.\n-Update default python version in `.github/actions/setup-ci-environment/action.yml`.\n- Update test matrices in `.github/workflows/run-tests-full.yml` (python version) and `noxfile.py` (package versions) for forward-compatibility checks.\n- Run `poetry run nox` and evaluate results.\n- If compatibility is confirmed, decide whether to adjust minimum constraints and classifiers in `pyproject.toml`."
             ]
         }
     ]
