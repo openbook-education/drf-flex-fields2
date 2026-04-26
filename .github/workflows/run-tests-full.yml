@@ -35,7 +35,7 @@ jobs:
                   poetry run nox
 
     run-coverage:
-        name: "Run coverage check (Python 3.14)"
+        name: "Run coverage check"
         runs-on: ubuntu-latest
 
         steps:
@@ -48,7 +48,6 @@ jobs:
               uses: ./.github/actions/setup-ci-environment
               with:
                   setup-python: "true"
-                  python-version: "3.14"
 
             - name: "Run coverage check"
               run: |

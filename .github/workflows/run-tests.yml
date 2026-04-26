@@ -45,7 +45,7 @@ jobs:
                           - "src/**"
                           - "pyproject.toml"
                           - "poetry.lock"
-                          - ".github/workflows/**"
+                          - ".github/workflows/*tests*"
 
     # Branch into reusable sub-workflow for the full test suite. Moved into a separate workflow
     # to only initialize the full CI environment when it is really needed.

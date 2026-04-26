@@ -7,7 +7,6 @@ on:
         paths:
             - ".github/workflows/build-docs.yml"
             - ".readthedocs.yaml"
-            - "README.md"
             - "poetry.lock"
             - "pyproject.toml"
             - "docs/**"
@@ -18,7 +17,6 @@ on:
         paths:
             - ".github/workflows/build-docs.yml"
             - ".readthedocs.yaml"
-            - "README.md"
             - "poetry.lock"
             - "pyproject.toml"
             - "docs/**"
