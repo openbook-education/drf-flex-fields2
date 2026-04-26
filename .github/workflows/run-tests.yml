@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
     # Decide whether to run the full test suite or the dummy test suite. The full test
-    # suite is run when Python/package or workflow files changed, or the workflow was
+    # suite is run when Python/package or test workflows changed, or the workflow was
     # manually started. Otherwise the dummy test suite will be run to satisfy branch
     # protection rules without wasting compute time.
     changes:
