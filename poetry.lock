@@ -1151,4 +1151,4 @@ python-discovery = ">=1.2.2"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "fec8caf0b46ce5f09358c1505b18bfa354bd842ccc59ef3e41030ace43d06e73"
+content-hash = "b972092692da16066292b1e77884dec265c4ba1ce5a9ea930b52ffa4cc4cf992"
