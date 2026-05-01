@@ -152,7 +152,7 @@ jobs:
                   PY
 
             - name: "Create GitHub Release"
-              uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v0.1.16
+              uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
               with:
                   tag_name: ${{ github.ref_name }}
                   name: ${{ github.ref_name }}
