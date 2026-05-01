@@ -32,8 +32,8 @@ sphinx-autoapi = "^3.8.0"
 sphinx-llm = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "^7.13.5"
-nox = "^2025.5.1"
+coverage = "7.13.5"
+nox = "2025.11.12"
 
 [tool.coverage.run]
 branch = true
