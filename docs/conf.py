@@ -38,7 +38,7 @@ autoapi_own_page_level = "class"
 autoapi_member_order = "bysource"
 autoapi_add_toctree_entry = False
 
-# Avoid race-condition between the autoapi and sphinx_llm. When buildint in parallel,
+# Avoid race-condition between the autoapi and sphinx_llm. When building in parallel,
 # autoapi might already have deleted the source files (unless we would also set
 # autoapi_keep_files = True).
 llms_txt_build_parallel = False
