@@ -38,6 +38,14 @@ autoapi_own_page_level = "class"
 autoapi_member_order = "bysource"
 autoapi_add_toctree_entry = False
 
+# Avoid race-condition between the autoapi and sphinx_llm. When buildint in parallel,
+# autoapi might already have deleted the source files (unless we would also set
+# autoapi_keep_files = True).
+llms_txt_build_parallel = False
+
+# Include type-hints in API docs
+autodoc_typehints = "description"
+
 html_theme = "sphinx_rtd_theme"
 html_theme_options = {
     "navigation_depth": 4,

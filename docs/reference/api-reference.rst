@@ -8,7 +8,7 @@ For task-oriented documentation, see :doc:`/guide/usage`,
 :doc:`/guide/serializer-options`, and :doc:`/guide/advanced`.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    ../api/rest_flex_fields2/index
 
