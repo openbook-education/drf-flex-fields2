@@ -5,7 +5,7 @@
 # NOTE: Update minimum required versions in pyproject.toml and noxfile.py.
 # In noxfile.py also update the maximum versions to the versions shown below.
 
-Django==6.0.4
+Django==6.0.5
 
 djangorestframework==3.17.1
 
