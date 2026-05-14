@@ -1,0 +1,64 @@
+# Advanced GitHub CodeQL code quality scanning configuration.
+# Needed to exclude the generated frontend API stubs from scanning.
+name: "CodeQL Advanced"
+
+# NOTE: The following paths should match the paths in the config at the bottom
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "src/rest_flex_fields2/**/*.py"
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - "src/rest_flex_fields2/**/*.py"
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: "ubuntu-latest"
+    permissions:
+      # required for all workflows
+      security-events: write
+
+      # required to fetch internal or private CodeQL packs
+      packages: read
+
+      # only required for workflows in private repositories
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: python
+          build-mode: none
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+        # Exclude generated files and overly sensitive findings that are usually intentional
+        config: |
+          paths:
+            - "src/rest_flex_fields2/**/*.py"
+          query-filters:
+            - exclude:
+                id: py/mixed-returns
+            - exclude:
+                id: py/empty-except
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{matrix.language}}"
