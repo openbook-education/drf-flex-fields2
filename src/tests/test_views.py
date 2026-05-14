@@ -192,7 +192,7 @@ class PetViewTests(APITestCase):
         self.assertEqual(
             response.data,
             {
-                "diet": "homemade lasanga",
+                "diet": "homemade lasagna",
                 "name": "Garfield",
                 "toys": "paper ball, string",
                 "sold_from": None,
