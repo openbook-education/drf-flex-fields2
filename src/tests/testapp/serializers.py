@@ -54,7 +54,7 @@ class PetSerializer(FlexFieldsModelSerializer):
     def get_diet(self, obj):
         """Return a diet description based on the pet's name."""
         if obj.name == "Garfield":
-            return "homemade lasanga"
+            return "homemade lasagna"
         return "pet food"
 
 
