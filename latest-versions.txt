@@ -11,4 +11,4 @@ djangorestframework==3.17.1
 
 # Python is tracked separately via regex because it is not a pip requirement dependency.
 # renovate: datasource=python-version depName=python versioning=pep440
-# python==3.14.4
+# python==3.14.5
