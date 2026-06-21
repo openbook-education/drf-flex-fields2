@@ -7,7 +7,7 @@ import nox
 @nox.session
 @nox.parametrize("django", [
     nox.param("5.2", "lts"),
-    nox.param("6.0.5", "latest")
+    nox.param("6.0.6", "latest")
 ])
 @nox.parametrize("drf", [
     nox.param("3.16.0", id="one-year-old"),
