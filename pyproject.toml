@@ -33,7 +33,7 @@ sphinx-llm = "^0.4.1"
 
 [tool.poetry.group.dev.dependencies]
 coverage = "7.15.4"
-nox = "2026.4.10"
+nox = "2026.8.17"
 
 [tool.coverage.run]
 branch = true
