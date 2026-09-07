@@ -911,14 +911,14 @@ sphinx = ">=7.4.0"
 
 [[package]]
 name = "sphinx-llm"
-version = "0.4.1"
+version = "1.0.0"
 description = ""
 optional = false
 python-versions = ">=3.9"
 groups = ["docs"]
 files = [
-    {file = "sphinx_llm-0.4.1-py3-none-any.whl", hash = "sha256:d7c8ee2a6335636b628ea2b26cd1e1dee1f0cf9c40fe51b20f201af1c05b95f5"},
-    {file = "sphinx_llm-0.4.1.tar.gz", hash = "sha256:0789185dcbbecc00b5e25aa3db6342b98dad6a9def96088a9e50fa0203fda090"},
+    {file = "sphinx_llm-1.0.0-py3-none-any.whl", hash = "sha256:8d45dbe5f9caffb4d78589c35d15fc8399dd41fc5b445ee4292ff83969754e75"},
+    {file = "sphinx_llm-1.0.0.tar.gz", hash = "sha256:1cc8284343a0100caa3110010da5933cdad8da37d2b9dda0e2a7d503b8da6b1c"},
 ]
 
 [package.dependencies]
@@ -926,7 +926,7 @@ sphinx = ">=5"
 sphinx-markdown-builder = ">=0.6.8"
 
 [package.extras]
-gen = ["langchain-ollama (>=0.2.0)"]
+gen = ["openai (>=1.0.0)"]
 
 [[package]]
 name = "sphinx-markdown-builder"
@@ -1166,4 +1166,4 @@ python-discovery = ">=1.3.1"
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<4"
-content-hash = "74aab414fe0630a8297859cbd1622952fb9302330e3adbd29c433e88c3b8d731"
+content-hash = "3159186ffa30abc9408b27fbd4d21e06c727d533649bcbe24c7768fe0da8aac9"
