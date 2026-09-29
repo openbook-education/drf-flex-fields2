@@ -32,7 +32,7 @@ sphinx-autoapi = "^3.8.0"
 sphinx-llm = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
-coverage = "7.16.1"
+coverage = "7.16.2"
 nox = "2026.4.10"
 
 [tool.coverage.run]
