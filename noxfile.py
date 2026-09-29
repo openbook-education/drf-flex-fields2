@@ -10,8 +10,10 @@ import nox
     nox.param("6.1.1", id="latest")
 ])
 @nox.parametrize("drf", [
-    nox.param("3.16.0", id="one-year-old"),
-    nox.param("3.17.1", id="latest")
+    # Error: cannot import name 'cc_delim_re' from 'django.utils.cache'
+    # since Django 6.1.1 only fixed in DRF 3.18.0
+    # nox.param("3.17.2", id="one-year-old"),
+    nox.param("3.18.1", id="latest")
 ])
 def tests(session: nox.Session, django: str, drf: str) -> None:
     """Run Django tests for one Django/DRF version combination."""
