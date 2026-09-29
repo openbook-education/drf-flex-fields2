@@ -6,8 +6,8 @@ import nox
 # NOTE: Set maximum version according to latest-versions.txt (updated by Renovate bot)
 @nox.session
 @nox.parametrize("django", [
-    nox.param("5.2", "lts"),
-    nox.param("6.0.6", "latest")
+    nox.param("5.2", id="lts"),
+    nox.param("6.1.1", id="latest")
 ])
 @nox.parametrize("drf", [
     nox.param("3.16.0", id="one-year-old"),
