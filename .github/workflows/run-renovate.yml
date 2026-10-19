@@ -22,7 +22,7 @@ jobs:
                   ref: ${{ github.event.repository.default_branch }}
 
             - name: "Run Renovate"
-              uses: renovatebot/github-action@1cd96b855fee0da6f230617e89dbff0e06ea393a # v46.3.5
+              uses: renovatebot/github-action@a63d9a7bc606f7336fd20b47f2f32259a35e6213 # v46.3.9
               with:
                   configurationFile: renovate.json5
                   token: ${{ secrets.RENOVATE_TOKEN }}
