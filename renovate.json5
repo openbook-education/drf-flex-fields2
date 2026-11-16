@@ -1,90 +1,121 @@
-// -*- mode: jsonc -*-
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:best-practices",
-        ":dependencyDashboard",
-        ":semanticCommits",
-        ":semanticCommitTypeAll(chore)",
-        ":automergeRequireAllStatusChecks",
-        "helpers:pinGitHubActionDigests"
+    $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+    extends: [
+        'config:best-practices',
+        ':dependencyDashboard',
+        ':semanticCommits',
+        ':semanticCommitTypeAll(chore)',
+        ':automergeRequireAllStatusChecks',
+        'helpers:pinGitHubActionDigests',
     ],
-    "timezone": "Europe/Berlin",
-    "dependencyDashboardTitle": "Dependency Dashboard",
-    "enabledManagers": ["github-actions", "poetry", "pip_requirements", "custom.regex"],
-    "pip_requirements": {
-        "managerFilePatterns": ["/(^|/)latest-versions\\.txt$/"]
+    timezone: 'Europe/Berlin',
+    dependencyDashboard: {
+        title: 'Dependency Dashboard',
     },
-    "customManagers": [
-        {
-            "customType": "regex",
-            "description": "Track latest Python runtime release",
-            "managerFilePatterns": ["/^latest-versions\\.txt$/"],
-            "matchStrings": [
-                "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\n#\\s*python==(?<currentValue>\\S+)"
-            ]
-        }
+    enabledManagers: [
+        'github-actions',
+        'poetry',
+        'pip_requirements',
+        'custom.regex',
     ],
-    "labels": ["dependencies", "automated"],
-    "configMigration": true,
-    "prConcurrentLimit": 0,
-    "prHourlyLimit": 0,
-    "rebaseWhen": "behind-base-branch",
-
-    // Automerge PR for lockfile maintenance
-    "lockFileMaintenance": {
-        "enabled": true,
-        "automerge": true,
-        "platformAutomerge": true,
-        "addLabels": ["lockfile-update"]
+    pip_requirements: {
+        managerFilePatterns: [
+            '/(^|/)latest-versions\\.txt$/',
+        ],
     },
-
-    // NOTE: Ordering matters. Later rules override earlier ones.
-
-    // NOTE: Renovate mostly handles non-runtime dependencies, as we want to maintain
-    // a minimum version for runtime dependencies like Django and DRF, in accordance
-    // to our documented dependency tracking and release strategy. For everything else
-    // we can bump or pin versions as usual and have Renovate automerge a PR to land
-    // the changes.
-
-    "packageRules": [
+    customManagers: [
         {
-            "description": "Pin development and documentation dependencies",
-            "matchManagers": ["poetry"],
-            "matchDepTypes": ["!dependencies"],
-            "matchUpdateTypes": ["digest", "minor", "patch", "pin", "pinDigest"],
-            "automerge": true,
-            "platformAutomerge": true
+            customType: 'regex',
+            description: 'Track latest Python runtime release',
+            managerFilePatterns: [
+                '/^latest-versions\\.txt$/',
+            ],
+            matchStrings: [
+                '#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)(?:\\s+versioning=(?<versioning>\\S+))?\\n#\\s*python==(?<currentValue>\\S+)',
+            ],
+        },
+    ],
+    labels: [
+        'dependencies',
+        'automated',
+    ],
+    configMigration: true,
+    prConcurrentLimit: 0,
+    prHourlyLimit: 0,
+    rebaseWhen: 'behind-base-branch',
+    lockFileMaintenance: {
+        enabled: true,
+        automerge: true,
+        platformAutomerge: true,
+        addLabels: [
+            'lockfile-update',
+        ],
+    },
+    packageRules: [
+        {
+            description: 'Pin development and documentation dependencies',
+            matchManagers: [
+                'poetry',
+            ],
+            matchDepTypes: [
+                '!dependencies',
+            ],
+            matchUpdateTypes: [
+                'digest',
+                'minor',
+                'patch',
+                'pin',
+                'pinDigest',
+            ],
+            automerge: true,
+            platformAutomerge: true,
         },
         {
-            "description": "Keep GitHub Actions updates organized",
-            "matchManagers": ["github-actions"],
-            "matchFileNames": [".github/workflows/**", ".github/actions/**"],
-            "dependencyDashboardCategory": "GitHub Actions",
-            "commitMessageTopic": "GitHub Actions dependencies",
-            "automerge": true,
-            "platformAutomerge": true
+            description: 'Keep GitHub Actions updates organized',
+            matchManagers: [
+                'github-actions',
+            ],
+            matchFileNames: [
+                '.github/workflows/**',
+                '.github/actions/**',
+            ],
+            dependencyDashboardCategory: 'GitHub Actions',
+            commitMessageTopic: 'GitHub Actions dependencies',
+            automerge: true,
+            platformAutomerge: true,
         },
         {
-            "description": "Automerge non-runtime regex-managed updates",
-            "matchManagers": ["custom.regex"],
-            "matchFileNames": [".github/workflows/**", ".github/actions/**"],
-            "matchPackageNames": ["!python"],
-            "automerge": true,
-            "platformAutomerge": true
+            description: 'Automerge non-runtime regex-managed updates',
+            matchManagers: [
+                'custom.regex',
+            ],
+            matchFileNames: [
+                '.github/workflows/**',
+                '.github/actions/**',
+            ],
+            matchPackageNames: [
+                '!python',
+            ],
+            automerge: true,
+            platformAutomerge: true,
         },
         {
-            "description": "Draft PR reminders for runtime dependency releases",
-            "matchManagers": ["pip_requirements", "custom.regex"],
-            "matchFileNames": ["latest-versions.txt"],
-            "dependencyDashboardCategory": "Runtime dependencies",
-            "commitMessageTopic": "runtime dependency tracking",
-            "draftPR": true,
-            "automerge": false,
-            "platformAutomerge": false,
-            "prBodyNotes": [
-                "This PR tracks upstream latest runtime releases and intentionally does not change compatibility minimums in `pyproject.toml`.\n\nMaintainer actions:\n- Review upstream release notes.\n- Update default Python version in `.github/actions/setup-ci-environment/action.yml`.\n- Update test matrices in `.github/workflows/run-tests-full.yml` (python version) and `noxfile.py` (package versions) for forward-compatibility checks.\n- Run `poetry run nox` and evaluate results.\n- If compatibility is confirmed, decide whether to adjust minimum constraints and classifiers in `pyproject.toml`."
-            ]
-        }
-    ]
+            description: 'Draft PR reminders for runtime dependency releases',
+            matchManagers: [
+                'pip_requirements',
+                'custom.regex',
+            ],
+            matchFileNames: [
+                'latest-versions.txt',
+            ],
+            dependencyDashboardCategory: 'Runtime dependencies',
+            commitMessageTopic: 'runtime dependency tracking',
+            draftPR: true,
+            automerge: false,
+            platformAutomerge: false,
+            prBodyNotes: [
+                'This PR tracks upstream latest runtime releases and intentionally does not change compatibility minimums in `pyproject.toml`.\n\nMaintainer actions:\n- Review upstream release notes.\n- Update default Python version in `.github/actions/setup-ci-environment/action.yml`.\n- Update test matrices in `.github/workflows/run-tests-full.yml` (python version) and `noxfile.py` (package versions) for forward-compatibility checks.\n- Run `poetry run nox` and evaluate results.\n- If compatibility is confirmed, decide whether to adjust minimum constraints and classifiers in `pyproject.toml`.',
+            ],
+        },
+    ],
 }
